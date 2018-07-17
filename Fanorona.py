@@ -16,8 +16,8 @@ for i2 in range(5):
 
 # starting render process
 def render():
-    width = correct_width = frame.winfo_width()
-    height = correct_height = frame.winfo_height()
+    width = correct_width = c.winfo_width()
+    height = correct_height = c.winfo_height()
 
     if width/height > 9 / 5:
         correct_width = height * (9 / 5)
@@ -25,9 +25,8 @@ def render():
         correct_height = width * (5 / 9)
 
     c.delete(ALL)
-    c.config(width=correct_width, height=correct_height)
-    draw_lines(round(correct_width / 2), round(correct_height / 2), round(correct_width), round(correct_height))
-    draw_pieces(round(correct_width / 2), round(correct_height / 2), round(correct_width), round(correct_height))
+    draw_lines(round(width / 2), round(height / 2), round(correct_width), round(correct_height))
+    draw_pieces(round(width / 2), round(height / 2), round(correct_width), round(correct_height))
 
 
 # drawing board lines
@@ -137,12 +136,8 @@ place.pack()
 reset = Button(menu, text="Reset Pieces", command=reset_positions)
 reset.pack()
 
-frame = Frame(root, width=900, height=500)
-frame.pack(side=LEFT, fill=BOTH, expand=1)
-
-c = Canvas(frame, width=900, height=500)
-c.place(relx=0.5, rely=0.5, anchor=CENTER)
-
-frame.bind("<Configure>", resize)
+c = Canvas(root, width=900, height=500)
+c.pack(fill=BOTH, expand=1, side=LEFT)
+c.bind("<Configure>", resize)
 
 root.mainloop()
