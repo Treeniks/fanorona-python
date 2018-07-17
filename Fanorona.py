@@ -16,8 +16,8 @@ for i2 in range(5):
 
 # starting render process
 def render():
-    width = correct_width = c.winfo_width()
-    height = correct_height = c.winfo_height()
+    width = correct_width = frame.winfo_width()
+    height = correct_height = frame.winfo_height()
 
     if width/height > 9 / 5:
         correct_width = height * (9 / 5)
@@ -25,74 +25,50 @@ def render():
         correct_height = width * (5 / 9)
 
     c.delete(ALL)
-    draw_lines((width - correct_width) / 2, (height - correct_height) / 2, correct_width, correct_height)
-    draw_pieces((width - correct_width) / 2, (height - correct_height) / 2, correct_width, correct_height)
+    c.config(width=correct_width, height=correct_height)
+    draw_lines(round(correct_width / 2), round(correct_height / 2), round(correct_width), round(correct_height))
+    draw_pieces(round(correct_width / 2), round(correct_height / 2), round(correct_width), round(correct_height))
 
 
 # drawing board lines
 def draw_lines(x, y, w, h):
-    thickness = w/225
-    dw = int(w / 18)
-    dh = int(h / 10)
+    thickness = int(w / 225)
+    dw = round(w / 9)
+    dh = round(h / 5)
 
-    for i in range(9):
-        c.create_line(x + dw + 2 * dw * i,
-                      y + dh,
-                      x + dw + 2 * dw * i,
-                      y + 9 * dh,
-                      width=thickness)
-    for i in range(5):
-        c.create_line(x + dw,
-                      y + dh + 2 * dh * i,
-                      x + 17 * dw,
-                      y + dh + 2 * dh * i,
-                      width=thickness)
-    for i in range(3):
-        c.create_line(x + dw + 4 * dw * i,
-                      y + dh,
-                      x + 9 * dw + 4 * dw * i,
-                      y + 9 * dh,
-                      width=thickness)
-    for i in range(3):
-        c.create_line(x + dw + 4 * dw * i,
-                      y + 9 * dh,
-                      x + 9 * dw + 4 * dw * i,
-                      y + dh,
-                      width=thickness)
-    for i in range(2):
-        c.create_line(x + dw,
-                      y + 5 * dh,
-                      x + 5 * dw,
-                      y + dh + 8 * dh * i,
-                      width=thickness)
-    for i in range(2):
-        c.create_line(x + 17 * dw,
-                      y + 5 * dh,
-                      x + 13 * dw,
-                      y + dh + 8 * dh * i,
-                      width=thickness)
-
-    # c.create_oval(15, 15, 85, 85, fill="blue")
+    for i in range(-4, 5):
+        c.create_line(x + dw * i, y - 2 * dh - int(w / 450),
+                      x + dw * i, y + 2 * dh + round(w / 450), width=thickness)
+    for i in range(-2, 3):
+        c.create_line(x - dw * 4, y + dh * i,
+                      x + dw * 4, y + dh * i, width=thickness)
+    for i in range(-4, 1, 2):
+        c.create_line(x + dw * i, y - 2 * dh, x + dw * (i + 4), y + 2 * dh, width=thickness)
+    for i in range(-4, 1, 2):
+        c.create_line(x + dw * i, y + 2 * dh, x + dw * (i + 4), y - 2 * dh, width=thickness)
+    for i in range(-2, 3, 4):
+        for j in range(-2, 3, 4):
+            c.create_line(x + 2 * dw * i, y, x + dw * i, y + dh * j, width=thickness)
 
 
 # drawing board pieces
 def draw_pieces(x, y, w, h):
-    thickness = w/225
-    dw = int(w / 18)
-    dh = int(h / 10)
+    thickness = int(w / 225)
+    dw = round(w / 9)
+    dh = round(h / 5)
 
     for i in range(5):
         for j in range(9):
             if positions[i][j] == 1:
-                c.create_oval(x + w * (25 / 900) + 2 * dw * j,
-                              y + h * (25 / 500) + 2 * dh * i,
-                              x + w * (75 / 900) + 2 * dw * j,
-                              y + h * (75 / 500) + 2 * dh * i, fill="black", width=thickness)
+                c.create_oval(x + dw * (j - 4) - w * (25 / 900),
+                              y + dh * (i - 2) - h * (25 / 500),
+                              x + dw * (j - 4) + w * (25 / 900),
+                              y + dh * (i - 2) + h * (25 / 500), fill="black", width=thickness)
             elif positions[i][j] == 2:
-                c.create_oval(x + w * (25 / 900) + 2 * dw * j,
-                              y + h * (25 / 500) + 2 * dh * i,
-                              x + w * (75 / 900) + 2 * dw * j,
-                              y + h * (75 / 500) + 2 * dh * i, fill="white", width=thickness)
+                c.create_oval(x + dw * (j - 4) - w * (25 / 900),
+                              y + dh * (i - 2) - h * (25 / 500),
+                              x + dw * (j - 4) + w * (25 / 900),
+                              y + dh * (i - 2) + h * (25 / 500), fill="white", width=thickness)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -142,6 +118,7 @@ def create_filler(master):
 
 root = Tk()
 root.title("Fanorona")
+root.minsize(width=600, height=250)
 
 # create_filler(root)
 
@@ -160,8 +137,12 @@ place.pack()
 reset = Button(menu, text="Reset Pieces", command=reset_positions)
 reset.pack()
 
-c = Canvas(root, width=900, height=500)
-c.pack(fill=BOTH, expand=1, side=LEFT)
-c.bind("<Configure>", resize)
+frame = Frame(root, width=900, height=500)
+frame.pack(side=LEFT, fill=BOTH, expand=1)
+
+c = Canvas(frame, width=900, height=500)
+c.place(relx=0.5, rely=0.5, anchor=CENTER)
+
+frame.bind("<Configure>", resize)
 
 root.mainloop()
