@@ -1,9 +1,31 @@
 from tkinter import *
 
-class Filler:
-    def __init__(self, master):
-        self.filler = Frame(master, width=10)
-        self.filler.pack(side=LEFT)
+
+positions = []
+for i2 in range(5):
+    positions.append([])
+    for j2 in range(9):
+        positions[i2].append(0)
+print(positions)
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+
+def render():
+    width = correct_width = c.winfo_width()
+    height = correct_height = c.winfo_height()
+
+    if width/height > 9 / 5:
+        correct_width = height * (9 / 5)
+    else:
+        correct_height = width * (5 / 9)
+
+    c.delete(ALL)
+    # c.create_rectangle(1,1,width-1,height-1, width=5)
+    draw_lines((width - correct_width) / 2, (height - correct_height) / 2, correct_width, correct_height)
+    draw_pieces((width - correct_width) / 2, (height - correct_height) / 2, correct_width, correct_height)
+
 
 def draw_lines(x, y, w, h):
     thickness = w/400
@@ -25,79 +47,91 @@ def draw_lines(x, y, w, h):
     for i in range(2):
         c.create_line(x + (w / 18) + w * (6 / 9) * i, y + (h / 10) + h * (2 / 5) + h * (2 / 5) * i,
                       x + (w / 18) + w * (2 / 9) + w * (6 / 9) * i, y + (h / 10) + h * (2 / 5) * i, width=thickness)
-    #c.create_oval(15, 15, 85, 85, fill="blue")
+    # c.create_oval(15, 15, 85, 85, fill="blue")
+
 
 def draw_pieces(x, y, w, h):
+    thickness = w/400
     for i in range(5):
         for j in range(9):
             if positions[i][j] == 1:
-                c.create_oval(x + (w * (15 / 900)) + (w / 9) * j, y + h * (15 / 500) + (h / 5) * i,
-                              x + (w * (85 / 900)) + (w / 9) * j, y + h * (85 / 500) + (h / 5) * i, fill="black")
+                c.create_oval(x + (w * (25 / 900)) + (w / 9) * j,
+                              y + h * (25 / 500) + (h / 5) * i,
+                              x + (w * (75 / 900)) + (w / 9) * j,
+                              y + h * (75 / 500) + (h / 5) * i, fill="black", width=thickness)
+                # print(w,x + (w * (75 / 900)) + (w / 9) * j + w/400)
             elif positions[i][j] == 2:
-                c.create_oval(x + (w * (15 / 900)) + (w / 9) * j, y + h * (15 / 500) + (h / 5) * i,
-                              x + (w * (85 / 900)) + (w / 9) * j, y + h * (85 / 500) + (h / 5) * i, fill="white")
+                c.create_oval(x + (w * (25 / 900)) + (w / 9) * j,
+                              y + h * (25 / 500) + (h / 5) * i,
+                              x + (w * (75 / 900)) + (w / 9) * j,
+                              y + h * (75 / 500) + (h / 5) * i, fill="white", width=thickness)
+                # print(w,x + (w * (75 / 900)) + (w / 9) * j + w/400)
 
-def render(event):
-    width = correct_width = c.winfo_width()
-    height = correct_height = c.winfo_height()
 
-    if width/height > 9 / 5:
-        correct_width = height * (9 / 5)
-    else:
-        correct_height = width * (5 / 9)
+# ----------------------------------------------------------------------------------------------------------------------
 
-    c.delete(ALL)
-    draw_lines((width - correct_width) / 2, (height - correct_height) / 2, correct_width, correct_height)
-    draw_pieces((width - correct_width) / 2, (height - correct_height) / 2, correct_width, correct_height)
 
 def set_positions():
-    width = correct_width = c.winfo_width()
-    height = correct_height = c.winfo_height()
-
-    if width/height > 9 / 5:
-        correct_width = height * (9 / 5)
-    else:
-        correct_height = width * (5 / 9)
-
     for i in range(2):
         for j in range(9):
             positions[i][j] = 1
-
-    for i in range(2):
+    for i in range(3, 5):
         for j in range(9):
-            positions[i+3][j] = 2
-
+            positions[i][j] = 2
     positions[2] = [1, 2, 1, 2, 0, 1, 2, 1, 2]
-    draw_pieces((width - correct_width) / 2, (height - correct_height) / 2, correct_width, correct_height)
-    #print(positions)
 
-positions = []
-for i in range(5):
-    positions.append([])
-    for j in range(9):
-        positions[i].append(0)
-#print(positions)
+    render()
+
+
+def reset_positions():
+    for i in range(5):
+        for j in range(9):
+            positions[i][j] = 0
+
+    render()
+
+
+def clear():
+    c.delete(ALL)
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+
+def resize(event):
+    render()
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+
+def create_filler(master):
+    filler = Frame(master, width=10)
+    filler.pack(side=LEFT)
+
 
 root = Tk()
 root.title("Fanorona")
 
-#filler = Filler(root)
+# create_filler(root)
 
-list = Listbox(root)
-list.pack(fill=Y, side=LEFT)
+listbox = Listbox(root)
+listbox.pack(fill=Y, side=LEFT)
 
-filler2 = Filler(root)
+create_filler(root)
 
 menu = Frame(root)
 menu.pack(side=LEFT)
 
-reset = Button(menu, text="Reset Pieces")
-reset.pack()
+clear = Button(menu, text="Clear Everything", command=clear)
+clear.pack()
 place = Button(menu, text="Place Pieces", command=set_positions)
 place.pack()
+reset = Button(menu, text="Reset Pieces", command=reset_positions)
+reset.pack()
 
 c = Canvas(root, width=900, height=500)
 c.pack(fill=BOTH, expand=1, side=LEFT)
-c.bind("<Configure>", render)
+c.bind("<Configure>", resize)
 
 root.mainloop()
