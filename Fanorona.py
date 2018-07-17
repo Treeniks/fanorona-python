@@ -12,7 +12,7 @@ print(positions)
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-def render():
+def render(move=False, x=0, y=0):
     width = correct_width = c.winfo_width()
     height = correct_height = c.winfo_height()
 
@@ -23,6 +23,8 @@ def render():
 
     c.delete(ALL)
     # c.create_rectangle(1,1,width-1,height-1, width=5)
+    if move:
+        c.create_oval(x, y, x + 50, y + 50, fill="blue")
     draw_lines((width - correct_width) / 2, (height - correct_height) / 2, correct_width, correct_height)
     draw_pieces((width - correct_width) / 2, (height - correct_height) / 2, correct_width, correct_height)
 
@@ -51,20 +53,19 @@ def draw_lines(x, y, w, h):
 
 
 def draw_pieces(x, y, w, h):
-    thickness = w/400
     for i in range(5):
         for j in range(9):
             if positions[i][j] == 1:
                 c.create_oval(x + (w * (25 / 900)) + (w / 9) * j,
                               y + h * (25 / 500) + (h / 5) * i,
                               x + (w * (75 / 900)) + (w / 9) * j,
-                              y + h * (75 / 500) + (h / 5) * i, fill="black", width=thickness)
+                              y + h * (75 / 500) + (h / 5) * i, fill="black", width=w/400)
                 # print(w,x + (w * (75 / 900)) + (w / 9) * j + w/400)
             elif positions[i][j] == 2:
                 c.create_oval(x + (w * (25 / 900)) + (w / 9) * j,
                               y + h * (25 / 500) + (h / 5) * i,
                               x + (w * (75 / 900)) + (w / 9) * j,
-                              y + h * (75 / 500) + (h / 5) * i, fill="white", width=thickness)
+                              y + h * (75 / 500) + (h / 5) * i, fill="white", width=w/400)
                 # print(w,x + (w * (75 / 900)) + (w / 9) * j + w/400)
 
 
@@ -92,7 +93,7 @@ def reset_positions():
 
 
 def clear():
-    c.delete(ALL)
+    c.delete("all")
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -100,6 +101,11 @@ def clear():
 
 def resize(event):
     render()
+
+
+def mouse(event):
+    # c.create_oval(event.x, event.y, event.x+50, event.y+50, fill="blue")
+    render(True, event.x, event.y)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -133,5 +139,6 @@ reset.pack()
 c = Canvas(root, width=900, height=500)
 c.pack(fill=BOTH, expand=1, side=LEFT)
 c.bind("<Configure>", resize)
+c.bind("<Motion>", mouse)
 
 root.mainloop()
