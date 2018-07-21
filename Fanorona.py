@@ -8,12 +8,14 @@ for i2 in range(5):
     for j2 in range(9):
         positions[i2].append(0)
 # print(positions)
-moveable = []
+movable = []
 for i2 in range(5):
-    moveable.append([])
+    movable.append([])
     for j2 in range(9):
-        moveable[i2].append(False)
+        movable[i2].append(False)
 # print(moveable)
+is_moving = False
+turn = 2
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -22,8 +24,7 @@ for i2 in range(5):
 
 # starting render process
 def render():
-    global width, correct_width, height, correct_height
-    global is_debugging
+    global width, correct_width, height, correct_height, dw, dh
     width = correct_width = c.winfo_width()
     height = correct_height = c.winfo_height()
 
@@ -32,16 +33,18 @@ def render():
     else:
         correct_height = width * (5 / 9)
 
+    dw = round(correct_width / 9)
+    dh = round(correct_height / 5)
+
     c.delete(ALL)
     draw_lines(round(width / 2), round(height / 2), round(correct_width), round(correct_height))
     draw_pieces(round(width / 2), round(height / 2), round(correct_width), round(correct_height))
+    draw_moveable(round(width / 2), round(height / 2), round(correct_width), round(correct_height))
 
 
 # drawing board lines
 def draw_lines(x, y, w, h):
     thickness = int(w / 225)
-    dw = round(w / 9)
-    dh = round(h / 5)
 
     for i in range(-4, 5):
         c.create_line(x + dw * i, y - 2 * dh - int(w / 450),
@@ -61,8 +64,6 @@ def draw_lines(x, y, w, h):
 # drawing board pieces
 def draw_pieces(x, y, w, h):
     thickness = int(w / 225)
-    dw = round(w / 9)
-    dh = round(h / 5)
 
     for i in range(5):
         for j in range(9):
@@ -76,34 +77,116 @@ def draw_pieces(x, y, w, h):
                               y + dh * (i - 2) - h * (25 / 500),
                               x + dw * (j - 4) + w * (25 / 900),
                               y + dh * (i - 2) + h * (25 / 500), fill="white", width=thickness)
+            elif positions[i][j] == 3:
+                c.create_oval(x + dw * (j - 4) - w * (25 / 900),
+                              y + dh * (i - 2) - h * (25 / 500),
+                              x + dw * (j - 4) + w * (25 / 900),
+                              y + dh * (i - 2) + h * (25 / 500), fill="blue", width=thickness)
+
+
+# drawing blue movable dots
+def draw_moveable(x, y, w, h):
+    global piecex, piecey
+    if not is_moving:
+        for i in range(5):
+            for j in range(9):
+                test_movable(j, i)
+    else:
+        test_movable_selected(piecex, piecey)
+
+    for i in range(5):
+        for j in range(9):
+            if movable[i][j]:
+                c.create_oval(x + dw * (j - 4) - w * (10 / 900),
+                              y + dh * (i - 2) - h * (10 / 500),
+                              x + dw * (j - 4) + w * (10 / 900),
+                              y + dh * (i - 2) + h * (10 / 500), fill="blue", width=0)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Button commands:
+# Button commands + Game Logic:
 
 
 def set_positions():
+    global turn, is_moving
     for i in range(2):
         for j in range(9):
             positions[i][j] = 1
     for i in range(3, 5):
         for j in range(9):
             positions[i][j] = 2
-    positions[2] = [1, 2, 1, 2, 0, 1, 2, 1, 2]
-
+    # positions[2] = [1, 2, 1, 2, 0, 1, 2, 1, 2]
+    turn = 2
+    is_moving = False
     render()
 
 
 def reset_positions():
+    global is_moving
     for i in range(5):
         for j in range(9):
             positions[i][j] = 0
-
+    is_moving = False
     render()
 
 
 def clear():
     c.delete(ALL)
+
+
+def test_movable(x, y):
+    if positions[y][x] == turn:
+        if y > 0 and positions[y-1][x] == 0:
+            movable[y][x] = True
+            # if single: return True
+        elif y < 4 and positions[y+1][x] == 0:
+            movable[y][x] = True
+            # if single: return True
+        elif x > 0 and positions[y][x-1] == 0:
+            movable[y][x] = True
+            # if single: return True
+        elif x < 8 and positions[y][x+1] == 0:
+            movable[y][x] = True
+            # if single: return True
+        elif (x + y) % 2 == 0:
+            if x > 0 and y > 0 and positions[y-1][x-1] == 0:
+                movable[y][x] = True
+                # if single: return True
+            elif x < 8 and y > 0 and positions[y-1][x+1] == 0:
+                movable[y][x] = True
+                # if single: return True
+            elif x > 0 and y < 4 and positions[y+1][x-1] == 0:
+                movable[y][x] = True
+                # if single: return True
+            elif x < 8 and y < 4 and positions[y+1][x+1] == 0:
+                movable[y][x] = True
+                # if single: return True
+        else:
+            movable[y][x] = False
+            # if single: return False
+    else:
+        movable[y][x] = False
+        # if single: return False
+
+
+def test_movable_selected(x, y):
+    if y > 0 and positions[y-1][x] == 0:
+        movable[y-1][x] = True
+    if y < 4 and positions[y+1][x] == 0:
+        movable[y+1][x] = True
+    if x > 0 and positions[y][x-1] == 0:
+        movable[y][x-1] = True
+    if x < 8 and positions[y][x+1] == 0:
+        movable[y][x+1] = True
+    if (x + y) % 2 == 0:
+        if x > 0 and y > 0 and positions[y-1][x-1] == 0:
+            movable[y-1][x-1] = True
+        if x < 8 and y > 0 and positions[y-1][x+1] == 0:
+            movable[y-1][x+1] = True
+        if x > 0 and y < 4 and positions[y+1][x-1] == 0:
+            movable[y+1][x-1] = True
+        if x < 8 and y < 4 and positions[y+1][x+1] == 0:
+            movable[y+1][x+1] = True
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -112,6 +195,38 @@ def clear():
 
 def resize(event):
     render()
+
+
+def click(event):
+    global is_moving, piecex, piecey, movingx, movingy, turn
+    for i in range(5):
+        if i * dh < event.y < (i + 1) * dh:
+            piecey = i
+    for j in range(9):
+        if j * dw < event.x < (j + 1) * dw:
+            piecex = j
+    # print(x, y)
+    if not is_moving:
+            # if test_movable(True, x, y):
+        if movable[piecey][piecex]:
+            positions[piecey][piecex] = 3
+            movingx = piecex
+            movingy = piecey
+            is_moving = True
+            for i in range(5):
+                for j in range(9):
+                    movable[i][j] = False
+            print(movingx, movingy)
+            render()
+    else:
+        if positions[piecey][piecex] == 0 and movable[piecey][piecex]:
+            print(movingx, movingy)
+            positions[piecey][piecex] = turn
+            positions[movingy][movingx] = 0
+            is_moving = False
+            if turn == 2: turn = 1
+            else: turn = 2
+            render()
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -139,7 +254,7 @@ menu.pack(side=LEFT)
 
 clear = Button(menu, text="Clear Everything", command=clear)
 clear.pack()
-place = Button(menu, text="Place Pieces", command=set_positions)
+place = Button(menu, text="Start Game", command=set_positions)
 place.pack()
 reset = Button(menu, text="Reset Pieces", command=reset_positions)
 reset.pack()
@@ -147,5 +262,6 @@ reset.pack()
 c = Canvas(root, width=900, height=500)
 c.pack(fill=BOTH, expand=1, side=LEFT)
 c.bind("<Configure>", resize)
+c.bind("<Button-1>", click)
 
 root.mainloop()
