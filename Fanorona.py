@@ -8,6 +8,12 @@ for i2 in range(5):
     for j2 in range(9):
         positions[i2].append(0)
 # print(positions)
+moveable = []
+for i2 in range(5):
+    moveable.append([])
+    for j2 in range(9):
+        moveable[i2].append(False)
+# print(moveable)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -16,6 +22,8 @@ for i2 in range(5):
 
 # starting render process
 def render():
+    global width, correct_width, height, correct_height
+    global is_debugging
     width = correct_width = c.winfo_width()
     height = correct_height = c.winfo_height()
 
