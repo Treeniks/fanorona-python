@@ -24,22 +24,22 @@ turn = 2
 
 # starting render process
 def render():
-    global width, correct_width, height, correct_height, dw, dh
+    global width, height, correct_width, correct_height, dw, dh
     width = correct_width = c.winfo_width()
     height = correct_height = c.winfo_height()
 
     if width/height > 9 / 5:
-        correct_width = height * (9 / 5)
+        correct_width = round(height * (9 / 5))
     else:
-        correct_height = width * (5 / 9)
+        correct_height = round(width * (5 / 9))
 
     dw = round(correct_width / 9)
     dh = round(correct_height / 5)
 
     c.delete(ALL)
-    draw_lines(round(width / 2), round(height / 2), round(correct_width), round(correct_height))
-    draw_pieces(round(width / 2), round(height / 2), round(correct_width), round(correct_height))
-    draw_moveable(round(width / 2), round(height / 2), round(correct_width), round(correct_height))
+    draw_lines(round(width / 2), round(height / 2), correct_width, correct_height)
+    draw_pieces(round(width / 2), round(height / 2), correct_width, correct_height)
+    draw_moveable(round(width / 2), round(height / 2), correct_width, correct_height)
 
 
 # drawing board lines
@@ -86,13 +86,12 @@ def draw_pieces(x, y, w, h):
 
 # drawing blue movable dots
 def draw_moveable(x, y, w, h):
-    global piecex, piecey
     if not is_moving:
         for i in range(5):
             for j in range(9):
                 test_movable(j, i)
     else:
-        test_movable_selected(piecex, piecey)
+        test_movable_selected(movingx, movingy)
 
     for i in range(5):
         for j in range(9):
@@ -108,25 +107,26 @@ def draw_moveable(x, y, w, h):
 
 
 def set_positions():
-    global turn, is_moving
+    global is_moving, turn
     for i in range(2):
         for j in range(9):
             positions[i][j] = 1
     for i in range(3, 5):
         for j in range(9):
             positions[i][j] = 2
-    # positions[2] = [1, 2, 1, 2, 0, 1, 2, 1, 2]
-    turn = 2
+    positions[2] = [1, 2, 1, 2, 0, 1, 2, 1, 2]
     is_moving = False
+    turn = 2
     render()
 
 
 def reset_positions():
-    global is_moving
+    global is_moving, turn
     for i in range(5):
         for j in range(9):
             positions[i][j] = 0
     is_moving = False
+    turn = 2
     render()
 
 
@@ -198,13 +198,11 @@ def resize(event):
 
 
 def click(event):
-    global is_moving, piecex, piecey, movingx, movingy, turn
-    for i in range(5):
-        if i * dh < event.y < (i + 1) * dh:
-            piecey = i
-    for j in range(9):
-        if j * dw < event.x < (j + 1) * dw:
-            piecex = j
+    global is_moving, movingx, movingy, turn
+    if event.x < (width - correct_width) / 2 or event.x > ((width - correct_width) / 2) + correct_width or event.y < (height - correct_height) / 2 or event.y > ((height - correct_height) / 2) + correct_height: return
+    piecex = int((event.x - (width - correct_width) / 2) / dw)
+    piecey = int((event.y - (height - correct_height) / 2) / dh)
+    print(piecex, piecey)
     # print(x, y)
     if not is_moving:
             # if test_movable(True, x, y):
@@ -216,11 +214,11 @@ def click(event):
             for i in range(5):
                 for j in range(9):
                     movable[i][j] = False
-            print(movingx, movingy)
+            # print(movingx, movingy)
             render()
     else:
-        if positions[piecey][piecex] == 0 and movable[piecey][piecex]:
-            print(movingx, movingy)
+        if movable[piecey][piecex]:
+            # print(movingx, movingy)
             positions[piecey][piecex] = turn
             positions[movingy][movingx] = 0
             is_moving = False
