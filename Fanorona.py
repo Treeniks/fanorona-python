@@ -86,12 +86,23 @@ def draw_pieces(x, y, w, h):
 
 # drawing blue movable dots
 def draw_moveable(x, y, w, h):
+    global paika3
     if not is_moving:
+        paika3 = True
         for i in range(5):
             for j in range(9):
-                test_movable(j, i)
+                test_movable(j, i, False)
+        for i in range(5):
+            for j in range(9):
+                if movable[i][j] == True:
+                    paika3 = False
+                    break
+        if paika3:
+            for i in range(5):
+                for j in range(9):
+                    test_movable(j, i, True)
     else:
-        test_movable_selected(movingx, movingy)
+        test_movable_selected(movingx, movingy, False, paika3)
 
     for i in range(5):
         for j in range(9):
@@ -108,14 +119,14 @@ def draw_moveable(x, y, w, h):
 
 def set_positions():
     global is_moving, turn, positions
-    '''for i in range(2):
+    for i in range(2):
         for j in range(9):
             positions[i][j] = 1
     for i in range(3, 5):
         for j in range(9):
             positions[i][j] = 2
-    positions[2] = [1, 2, 1, 2, 0, 1, 2, 1, 2]'''
-    positions = [[1, 1, 1, 0, 1, 0, 1, 0, 1], [2, 0, 2, 1, 2, 1, 2, 1, 2], [1, 1, 1, 0, 1, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 2, 2, 2, 2, 2, 2, 2]]
+    positions[2] = [1, 2, 1, 2, 0, 1, 2, 1, 2]
+    # positions = [[1, 1, 1, 0, 1, 0, 1, 0, 1], [2, 0, 2, 1, 2, 1, 2, 1, 2], [1, 1, 1, 0, 1, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 2, 2, 2, 2, 2, 2, 2]]
     is_moving = False
     turn = 2
     render()
@@ -135,103 +146,146 @@ def clear():
     c.delete(ALL)
 
 
-def test_movable(x, y):
+def test_movable(x, y, paika2=False):
     if positions[y][x] == turn:
         if y > 0 and positions[y-1][x] == 0:
-            if test_movable_selected(x, y, True):
-                movable[y][x] = True
+            if not paika2:
+                if test_movable_selected(x, y, True, paika2):
+                    movable[y][x] = True
+                else:
+                    movable[y][x] = False
             else:
-                movable[y][x] = False
+                movable[y][x] = True
         elif y < 4 and positions[y+1][x] == 0:
-            if test_movable_selected(x, y, True):
-                movable[y][x] = True
+            if not paika2:
+                if test_movable_selected(x, y, True, paika2):
+                    movable[y][x] = True
+                else:
+                    movable[y][x] = False
             else:
-                movable[y][x] = False
+                movable[y][x] = True
         elif x > 0 and positions[y][x-1] == 0:
-            if test_movable_selected(x, y, True):
-                movable[y][x] = True
+            if not paika2:
+                if test_movable_selected(x, y, True, paika2):
+                    movable[y][x] = True
+                else:
+                    movable[y][x] = False
             else:
-                movable[y][x] = False
+                movable[y][x] = True
         elif x < 8 and positions[y][x+1] == 0:
-            if test_movable_selected(x, y, True):
-                movable[y][x] = True
+            if not paika2:
+                if test_movable_selected(x, y, True, paika2):
+                    movable[y][x] = True
+                else:
+                    movable[y][x] = False
             else:
-                movable[y][x] = False
+                movable[y][x] = True
         elif (x + y) % 2 == 0:
             if x > 0 and y > 0 and positions[y-1][x-1] == 0:
-                if test_movable_selected(x, y, True):
-                    movable[y][x] = True
+                if not paika2:
+                    if test_movable_selected(x, y, True, paika2):
+                        movable[y][x] = True
+                    else:
+                        movable[y][x] = False
                 else:
-                    movable[y][x] = False
+                    movable[y][x] = True
             elif x < 8 and y > 0 and positions[y-1][x+1] == 0:
-                if test_movable_selected(x, y, True):
-                    movable[y][x] = True
+                if not paika2:
+                    if test_movable_selected(x, y, True, paika2):
+                        movable[y][x] = True
+                    else:
+                        movable[y][x] = False
                 else:
-                    movable[y][x] = False
+                    movable[y][x] = True
             elif x > 0 and y < 4 and positions[y+1][x-1] == 0:
-                if test_movable_selected(x, y, True):
-                    movable[y][x] = True
+                if not paika2:
+                    if test_movable_selected(x, y, True, paika2):
+                        movable[y][x] = True
+                    else:
+                        movable[y][x] = False
                 else:
-                    movable[y][x] = False
+                    movable[y][x] = True
             elif x < 8 and y < 4 and positions[y+1][x+1] == 0:
-                if test_movable_selected(x, y, True):
-                    movable[y][x] = True
+                if not paika2:
+                    if test_movable_selected(x, y, True, paika2):
+                        movable[y][x] = True
+                    else:
+                        movable[y][x] = False
                 else:
-                    movable[y][x] = False
+                    movable[y][x] = True
         else:
             movable[y][x] = False
     else:
         movable[y][x] = False
 
 
-def test_movable_selected(x, y, checking=False):
-    if y > 1 and positions[y-1][x] == 0 and not positions[y-2][x] == turn and not positions[y-2][x] == 0:  # North
-        if checking:
-            return True
-        else:
-            movable[y-1][x] = True
-    if y < 3 and positions[y+1][x] == 0 and not positions[y+2][x] == turn and not positions[y+2][x] == 0:  # South
-        if checking:
-            return True
-        else:
-            movable[y+1][x] = True
-    if x > 1 and positions[y][x-1] == 0 and not positions[y][x-2] == turn and not positions[y][x-2] == 0:  # West
-        if checking:
-            return True
-        else:
-            movable[y][x-1] = True
-    if x < 7 and positions[y][x+1] == 0 and not positions[y][x+2] == turn and not positions[y][x+2] == 0:  # East
-        if checking:
-            return True
-        else:
-            movable[y][x+1] = True
-    if (x + y) % 2 == 0:
-        if x > 1 and y > 1 and positions[y-1][x-1] == 0 and not positions[y-2][x-2] == turn and not positions[y-2][x-2] == 0:  # North-West
+def test_movable_selected(x, y, checking=False, paika=False):
+    if not paika:
+        if y > 1 and positions[y-1][x] == 0 and not positions[y-2][x] == turn and not positions[y-2][x] == 0:  # North
             if checking:
                 return True
             else:
-                movable[y-1][x-1] = True
-        if x < 7 and y > 1 and positions[y-1][x+1] == 0 and not positions[y-2][x+2] == turn and not positions[y-2][x+2] == 0:  # North-East
+                movable[y-1][x] = True
+        if y < 3 and positions[y+1][x] == 0 and not positions[y+2][x] == turn and not positions[y+2][x] == 0:  # South
             if checking:
                 return True
             else:
-                movable[y-1][x+1] = True
-        if x > 1 and y < 3 and positions[y+1][x-1] == 0 and not positions[y+2][x-2] == turn and not positions[y+2][x-2] == 0:  # South-West
+                movable[y+1][x] = True
+        if x > 1 and positions[y][x-1] == 0 and not positions[y][x-2] == turn and not positions[y][x-2] == 0:  # West
             if checking:
                 return True
             else:
-                movable[y+1][x-1] = True
-        if x < 7 and y < 3 and positions[y+1][x+1] == 0 and not positions[y+2][x+2] == turn and not positions[y+2][x+2] == 0:  # South-East
+                movable[y][x-1] = True
+        if x < 7 and positions[y][x+1] == 0 and not positions[y][x+2] == turn and not positions[y][x+2] == 0:  # East
             if checking:
                 return True
             else:
-                movable[y+1][x+1] = True
-    if checking:
-        return False
+                movable[y][x+1] = True
+        if (x + y) % 2 == 0:
+            if x > 1 and y > 1 and positions[y-1][x-1] == 0 and not positions[y-2][x-2] == turn and not positions[y-2][x-2] == 0:  # North-West
+                if checking:
+                    return True
+                else:
+                    movable[y-1][x-1] = True
+            if x < 7 and y > 1 and positions[y-1][x+1] == 0 and not positions[y-2][x+2] == turn and not positions[y-2][x+2] == 0:  # North-East
+                if checking:
+                    return True
+                else:
+                    movable[y-1][x+1] = True
+            if x > 1 and y < 3 and positions[y+1][x-1] == 0 and not positions[y+2][x-2] == turn and not positions[y+2][x-2] == 0:  # South-West
+                if checking:
+                    return True
+                else:
+                    movable[y+1][x-1] = True
+            if x < 7 and y < 3 and positions[y+1][x+1] == 0 and not positions[y+2][x+2] == turn and not positions[y+2][x+2] == 0:  # South-East
+                if checking:
+                    return True
+                else:
+                    movable[y+1][x+1] = True
+        if checking:
+            return False
+    else:
+        if y > 0 and positions[y - 1][x] == 0:
+            movable[y - 1][x] = True
+        if y < 4 and positions[y + 1][x] == 0:
+            movable[y + 1][x] = True
+        if x > 0 and positions[y][x - 1] == 0:
+            movable[y][x - 1] = True
+        if x < 8 and positions[y][x + 1] == 0:
+            movable[y][x + 1] = True
+        if (x + y) % 2 == 0:
+            if x > 0 and y > 0 and positions[y - 1][x - 1] == 0:
+                movable[y - 1][x - 1] = True
+            if x < 8 and y > 0 and positions[y - 1][x + 1] == 0:
+                movable[y - 1][x + 1] = True
+            if x > 0 and y < 4 and positions[y + 1][x - 1] == 0:
+                movable[y + 1][x - 1] = True
+            if x < 8 and y < 4 and positions[y + 1][x + 1] == 0:
+                movable[y + 1][x + 1] = True
 
 
 def remove_in_direction(direction, x, y):
-    print(direction)
+    # print(direction)
     i = 1
     if direction == "N":
         while y - i > -1 and not positions[y - i][x] == turn and not positions[y - i][x] == 0:
@@ -280,7 +334,7 @@ def click(event):
     if event.x < (width - correct_width) / 2 or event.x > ((width - correct_width) / 2) + correct_width or event.y < (height - correct_height) / 2 or event.y > ((height - correct_height) / 2) + correct_height: return
     piecex = int((event.x - (width - correct_width) / 2) / dw)
     piecey = int((event.y - (height - correct_height) / 2) / dh)
-    print(piecex, piecey)
+    # print(piecex, piecey)
     # print(x, y)
     if not is_moving:
             # if test_movable(True, x, y):
