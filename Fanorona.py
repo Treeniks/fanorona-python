@@ -107,14 +107,15 @@ def draw_moveable(x, y, w, h):
 
 
 def set_positions():
-    global is_moving, turn
-    for i in range(2):
+    global is_moving, turn, positions
+    '''for i in range(2):
         for j in range(9):
             positions[i][j] = 1
     for i in range(3, 5):
         for j in range(9):
             positions[i][j] = 2
-    positions[2] = [1, 2, 1, 2, 0, 1, 2, 1, 2]
+    positions[2] = [1, 2, 1, 2, 0, 1, 2, 1, 2]'''
+    positions = [[1, 1, 1, 0, 1, 0, 1, 0, 1], [2, 0, 2, 1, 2, 1, 2, 1, 2], [1, 1, 1, 0, 1, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 2, 2, 2, 2, 2, 2, 2]]
     is_moving = False
     turn = 2
     render()
@@ -137,56 +138,133 @@ def clear():
 def test_movable(x, y):
     if positions[y][x] == turn:
         if y > 0 and positions[y-1][x] == 0:
-            movable[y][x] = True
-            # if single: return True
+            if test_movable_selected(x, y, True):
+                movable[y][x] = True
+            else:
+                movable[y][x] = False
         elif y < 4 and positions[y+1][x] == 0:
-            movable[y][x] = True
-            # if single: return True
+            if test_movable_selected(x, y, True):
+                movable[y][x] = True
+            else:
+                movable[y][x] = False
         elif x > 0 and positions[y][x-1] == 0:
-            movable[y][x] = True
-            # if single: return True
+            if test_movable_selected(x, y, True):
+                movable[y][x] = True
+            else:
+                movable[y][x] = False
         elif x < 8 and positions[y][x+1] == 0:
-            movable[y][x] = True
-            # if single: return True
+            if test_movable_selected(x, y, True):
+                movable[y][x] = True
+            else:
+                movable[y][x] = False
         elif (x + y) % 2 == 0:
             if x > 0 and y > 0 and positions[y-1][x-1] == 0:
-                movable[y][x] = True
-                # if single: return True
+                if test_movable_selected(x, y, True):
+                    movable[y][x] = True
+                else:
+                    movable[y][x] = False
             elif x < 8 and y > 0 and positions[y-1][x+1] == 0:
-                movable[y][x] = True
-                # if single: return True
+                if test_movable_selected(x, y, True):
+                    movable[y][x] = True
+                else:
+                    movable[y][x] = False
             elif x > 0 and y < 4 and positions[y+1][x-1] == 0:
-                movable[y][x] = True
-                # if single: return True
+                if test_movable_selected(x, y, True):
+                    movable[y][x] = True
+                else:
+                    movable[y][x] = False
             elif x < 8 and y < 4 and positions[y+1][x+1] == 0:
-                movable[y][x] = True
-                # if single: return True
+                if test_movable_selected(x, y, True):
+                    movable[y][x] = True
+                else:
+                    movable[y][x] = False
         else:
             movable[y][x] = False
-            # if single: return False
     else:
         movable[y][x] = False
-        # if single: return False
 
 
-def test_movable_selected(x, y):
-    if y > 0 and positions[y-1][x] == 0:
-        movable[y-1][x] = True
-    if y < 4 and positions[y+1][x] == 0:
-        movable[y+1][x] = True
-    if x > 0 and positions[y][x-1] == 0:
-        movable[y][x-1] = True
-    if x < 8 and positions[y][x+1] == 0:
-        movable[y][x+1] = True
+def test_movable_selected(x, y, checking=False):
+    if y > 1 and positions[y-1][x] == 0 and not positions[y-2][x] == turn and not positions[y-2][x] == 0:  # North
+        if checking:
+            return True
+        else:
+            movable[y-1][x] = True
+    if y < 3 and positions[y+1][x] == 0 and not positions[y+2][x] == turn and not positions[y+2][x] == 0:  # South
+        if checking:
+            return True
+        else:
+            movable[y+1][x] = True
+    if x > 1 and positions[y][x-1] == 0 and not positions[y][x-2] == turn and not positions[y][x-2] == 0:  # West
+        if checking:
+            return True
+        else:
+            movable[y][x-1] = True
+    if x < 7 and positions[y][x+1] == 0 and not positions[y][x+2] == turn and not positions[y][x+2] == 0:  # East
+        if checking:
+            return True
+        else:
+            movable[y][x+1] = True
     if (x + y) % 2 == 0:
-        if x > 0 and y > 0 and positions[y-1][x-1] == 0:
-            movable[y-1][x-1] = True
-        if x < 8 and y > 0 and positions[y-1][x+1] == 0:
-            movable[y-1][x+1] = True
-        if x > 0 and y < 4 and positions[y+1][x-1] == 0:
-            movable[y+1][x-1] = True
-        if x < 8 and y < 4 and positions[y+1][x+1] == 0:
-            movable[y+1][x+1] = True
+        if x > 1 and y > 1 and positions[y-1][x-1] == 0 and not positions[y-2][x-2] == turn and not positions[y-2][x-2] == 0:  # North-West
+            if checking:
+                return True
+            else:
+                movable[y-1][x-1] = True
+        if x < 7 and y > 1 and positions[y-1][x+1] == 0 and not positions[y-2][x+2] == turn and not positions[y-2][x+2] == 0:  # North-East
+            if checking:
+                return True
+            else:
+                movable[y-1][x+1] = True
+        if x > 1 and y < 3 and positions[y+1][x-1] == 0 and not positions[y+2][x-2] == turn and not positions[y+2][x-2] == 0:  # South-West
+            if checking:
+                return True
+            else:
+                movable[y+1][x-1] = True
+        if x < 7 and y < 3 and positions[y+1][x+1] == 0 and not positions[y+2][x+2] == turn and not positions[y+2][x+2] == 0:  # South-East
+            if checking:
+                return True
+            else:
+                movable[y+1][x+1] = True
+    if checking:
+        return False
+
+
+def remove_in_direction(direction, x, y):
+    print(direction)
+    i = 1
+    if direction == "N":
+        while y - i > -1 and not positions[y - i][x] == turn and not positions[y - i][x] == 0:
+            positions[y - i][x] = 0
+            i += 1
+    elif direction == "E":
+        while x + i < 9 and not positions[y][x + i] == turn and not positions[y][x + i] == 0:
+            positions[y][x + i] = 0
+            i += 1
+    elif direction == "S":
+        while y + i < 5 and not positions[y + i][x] == turn and not positions[y + i][x] == 0:
+            positions[y + i][x] = 0
+            i += 1
+    elif direction == "W":
+        while x - i > -1 and not positions[y][x - i] == turn and not positions[y][x - i] == 0:
+            positions[y][x - i] = 0
+            i += 1
+    elif direction == "NE":
+        while y - i > -1 and x + i < 9 and not positions[y - i][x + i] == turn and not positions[y - i][x + i] == 0:
+            positions[y - i][x + i] = 0
+            i += 1
+    elif direction == "SE":
+        while y + i < 5 and x + i < 9 and not positions[y + i][x + i] == turn and not positions[y + i][x + i] == 0:
+            positions[y + i][x + i] = 0
+            i += 1
+    elif direction == "SW":
+        while y + i < 5 and x - i > -1 and not positions[y + i][x - i] == turn and not positions[y + i][x - i] == 0:
+            positions[y + i][x - i] = 0
+            i += 1
+    elif direction == "NW":
+        while y - i > -1 and x - i > -1 and not positions[y - i][x - i] == turn and not positions[y - i][x - i] == 0:
+            positions[y - i][x - i] = 0
+            i += 1
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -221,6 +299,23 @@ def click(event):
             # print(movingx, movingy)
             positions[piecey][piecex] = turn
             positions[movingy][movingx] = 0
+            if piecey == movingy - 1 and piecex == movingx:
+                direction = "N"
+            elif piecey == movingy and piecex == movingx + 1:
+                direction = "E"
+            elif piecey == movingy + 1 and piecex == movingx:
+                direction = "S"
+            elif piecey == movingy and piecex == movingx - 1:
+                direction = "W"
+            elif piecey == movingy - 1 and piecex == movingx + 1:
+                direction = "NE"
+            elif piecey == movingy + 1 and piecex == movingx + 1:
+                direction = "SE"
+            elif piecey == movingy + 1 and piecex == movingx - 1:
+                direction = "SW"
+            elif piecey == movingy - 1 and piecex == movingx - 1:
+                direction = "NW"
+            remove_in_direction(direction, piecex, piecey)
             is_moving = False
             if turn == 2: turn = 1
             else: turn = 2
