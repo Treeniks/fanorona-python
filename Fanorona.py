@@ -113,6 +113,13 @@ def draw_moveable(x, y, w, h):
                               y + dh * (i - 2) + h * (10 / 500), fill="blue", width=0)
 
 
+def capture_question():
+    approach = Button(menu, text="Approach")
+    withdrawal = Button(menu, text="Withdrawal")
+    approach.place(relx=1, y=0, anchor=NE)
+    withdrawal.place(relx=1, y=25, anchor=NE)
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Button commands + Game Logic:
 
@@ -396,15 +403,15 @@ listbox.pack(fill=Y, side=LEFT)
 
 create_filler(root)
 
-menu = Frame(root)
-menu.pack(side=LEFT)
+menu = Frame(root, width=100)
+menu.pack(fill=Y, side=LEFT)
 
 clear = Button(menu, text="Clear Everything", command=clear)
-clear.pack()
+clear.place(relx=0.5, rely=0.5, y=-25, anchor=CENTER)
 place = Button(menu, text="Start Game", command=set_positions)
-place.pack()
+place.place(relx=0.5, rely=0.5, anchor=CENTER)
 reset = Button(menu, text="Reset Pieces", command=reset_positions)
-reset.pack()
+reset.place(relx=0.5, rely=0.5, y=25, anchor=CENTER)
 
 c = Canvas(root, width=900, height=500)
 c.pack(fill=BOTH, expand=1, side=LEFT)
