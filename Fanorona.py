@@ -1,7 +1,6 @@
 from tkinter import *
 
 
-# creating pieces list
 pieces = []
 movable = []
 for i2 in range(5):
@@ -10,8 +9,14 @@ for i2 in range(5):
     for j2 in range(9):
         pieces[i2].append(0)
         movable[i2].append(False)
-# print(pieces)
-# print(movable)
+directions_basic = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+directions_advanced = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
+directions_advanced.extend(directions_basic)
+direction = ()
+aw = {}
+positions = []
+asking = []
+ask_player = False
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -37,13 +42,16 @@ def render():
     y = round(height / 2)
 
     c.delete(ALL)
-    draw_lines(x, y, correct_width, correct_height, dw, dh, thickness)
-    draw_pieces(x, y, correct_width, correct_height, dw, dh, thickness)
-    draw_movable(x, y, correct_width, correct_height, dw, dh)
+    draw_lines(x, y, correct_width, correct_height, thickness)
+    draw_arrows(x, y, correct_width, correct_height, thickness)
+    draw_pieces(x, y, correct_width, correct_height, thickness)
+    draw_movable(x, y, correct_width, correct_height)
+    draw_positions(x, y, correct_width, correct_height)
+    draw_asking(x, y, correct_width, correct_height)
 
 
 # drawing board lines
-def draw_lines(x, y, w, h, dw, dh, thickness):
+def draw_lines(x, y, w, h, thickness):
     for i in range(-4, 5):
         c.create_line(x + dw * i, y - 2 * dh - int(w / 450),
                       x + dw * i, y + 2 * dh + round(w / 450), width=thickness)
@@ -63,7 +71,7 @@ def draw_lines(x, y, w, h, dw, dh, thickness):
 
 
 # drawing board pieces
-def draw_pieces(x, y, w, h, dw, dh, thickness):
+def draw_pieces(x, y, w, h, thickness):
     for i in range(5):
         for j in range(9):
             if pieces[i][j] == 1:
@@ -88,153 +96,210 @@ def draw_pieces(x, y, w, h, dw, dh, thickness):
                               y + dh * (i - 2) + h * (25 / 500), fill="red", width=thickness)
 
 
-def draw_movable(x, y, w, h, dw, dh):
+def draw_movable(x, y, w, h):
     for i in range(5):
         for j in range(9):
             if movable[i][j]:
                 c.create_oval(x + dw * (j - 4) - w * (10 / 900),
-                                        y + dh * (i - 2) - h * (10 / 500),
-                                        x + dw * (j - 4) + w * (10 / 900),
-                                        y + dh * (i - 2) + h * (10 / 500), fill="blue", width=0)
+                              y + dh * (i - 2) - h * (10 / 500),
+                              x + dw * (j - 4) + w * (10 / 900),
+                              y + dh * (i - 2) + h * (10 / 500), fill="blue", width=0)
+
+
+def draw_positions(x, y, w, h):
+    for i in range(len(positions) - 1):
+        c.create_oval(x + dw * (positions[i][0] - 4) - w * (10 / 900),
+                      y + dh * (positions[i][1] - 2) - h * (10 / 500),
+                      x + dw * (positions[i][0] - 4) + w * (10 / 900),
+                      y + dh * (positions[i][1] - 2) + h * (10 / 500), fill="red", width=0)
+
+
+def draw_arrows(x, y, w, h, thickness):
+    for i in range(len(positions) - 1):
+        # c.create_line(x - (4 - positions[i][0]) * dw,
+                      # y - (2 - positions[i][1]) * dh,
+                      # x - (4 - positions[i + 1][0]) * dw - w * (10 / 900),
+                      # y - (2 - positions[i + 1][1]) * dh - h * (10 / 500), arrow="last", fill="black", width=(thickness + thickness))
+        c.create_line(x - (4 - positions[i][0]) * dw,
+                      y - (2 - positions[i][1]) * dh,
+                      x - (4 - positions[i + 1][0]) * dw,
+                      y - (2 - positions[i + 1][1]) * dh, fill="red", width=thickness)
+        c.create_line(x - (4 - positions[i][0]) * dw,
+                      y - (2 - positions[i][1]) * dh,
+                      ((x - (4 - positions[i + 1][0]) * dw) + (x - (4 - positions[i][0]) * dw)) / 2,
+                      ((y - (2 - positions[i + 1][1]) * dh) + (y - (2 - positions[i][1]) * dh)) / 2, fill="red", arrow="last", width=thickness)
+
+
+def draw_asking(x, y, w, h):
+    for i in asking:
+        c.create_oval(x + dw * (i[0] -4) - w * (10 / 900),
+                      y + dh * (i[1] - 2) - h * (10 / 500),
+                      x + dw * (i[0] - 4) + w * (10 / 900),
+                      y + dh * (i[1] - 2) + h * (10 / 500), fill="yellow", width=0)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # GAME LOGIC:
 
 
-def test_all_for_movability():
-    for i in range(5):
-        for j in range(9):
-            movable[i][j] = is_movable(j, i)
+def create_tempdirection(x, y):
+    if (x + y) % 2 == 0:
+        tempdirection = directions_advanced
+    else:
+        tempdirection = directions_basic
+    return tempdirection
 
 
-def is_movable(x, y):
-    if is_movable_by_approach(x, y) or is_movable_by_withdrawal(x, y):
+def in_bounce_approach(x, y, i):
+    if -1 < x + i[0] + i[0] < 9 and -1 < y + i[1] + i[1] < 5:
         return True
     else:
         return False
 
 
-def is_movable_by_approach(x, y):
-    if pieces[y][x] == turn:
-        if ((x < 7 and pieces[y][x + 1] == 0 and pieces[y][x + 2] == notturn)
-                or (x > 1 and pieces[y][x - 1] == 0 and pieces[y][x - 2] == notturn)
-                or (y < 3 and pieces[y + 1][x] == 0 and pieces[y + 2][x] == notturn)
-                or (y > 1 and pieces[y - 1][x] == 0 and pieces[y - 2][x] == notturn)
-                or (x + y) % 2 == 0 and (
-                    (x < 7 and y < 3 and pieces[y + 1][x + 1] == 0 and pieces[y + 2][x + 2] == notturn)
-                    or (x < 7 and y > 1 and pieces[y - 1][x + 1] == 0 and pieces[y - 2][x + 2] == notturn)
-                    or (x > 1 and y > 1 and pieces[y - 1][x - 1] == 0 and pieces[y - 2][x - 2] == notturn)
-                    or (x > 1 and y < 3 and pieces[y + 1][x - 1] == 0 and pieces[y + 2][x - 2] == notturn))):
-            return True
-        else:
-            return False
+def in_bounce_withdrawal(x, y, i):
+    if -1 < x - i[0] < 9 and -1 < y - i[1] < 5 and -1 < x + i[0] < 9 and -1 < y + i[1] < 5:
+        return True
     else:
         return False
 
 
-def is_movable_by_withdrawal(x, y):
-    if pieces[y][x] == turn:
-        if ((0 < x < 8 and (
-                    (pieces[y][x + 1] == 0 and pieces[y][x - 1] == notturn)
-                    or (pieces[y][x - 1] == 0 and pieces[y][x + 1] == notturn)))
-                or (0 < y < 4 and (
-                    (pieces[y + 1][x] == 0 and pieces[y - 1][x] == notturn)
-                    or (pieces[y - 1] == 0 and pieces[y + 1][x] == notturn)))
-                or ((x + y) % 2 == 0 and 0 < x < 4 and 0 < y < 4 and (
-                    (pieces[y + 1][x + 1] == 0 and pieces[y - 1][x - 1] == notturn)
-                    or (pieces[y - 1][x + 1] == 0 and pieces[y + 1][x - 1] == notturn)
-                    or (pieces[y - 1][x - 1] == 0 and pieces[y + 1][x + 1] == notturn)
-                    or (pieces[y + 1][x - 1] == 0 and pieces[y - 1][x + 1] == notturn)))):
-            return True
-        else:
-            return False
+def in_bounce_paika(x, y, i):
+    if -1 < x + i[0] < 9 and -1 < y + i[1] < 5:
+        return True
     else:
         return False
 
 
-def how_movable(x, y):
-    by = "none"
-    if is_movable_by_approach(x, y):
-        by = "approach"
-    if is_movable_by_withdrawal(x, y):
-        if by == "approach":
-            by = "both"
-        else:
-            by = "withdrawal"
-    return by
+def reset_movable():
+    for i in range(5):
+        for j in range(9):
+            movable[i][j] = False
 
 
-# movable_to_by_approach(piece_x, piece_y)
-# -> possibilities dictionary {(dx1, dy1): "approach", (dx2, dy2): "approach"}
-def movable_to_by_approach(x, y):
-    possibilities_approach = {}
-    if pieces[y][x] == turn:
-        for i in range(-1, 2):  # vertical
-            for j in range(-1, 2):  # horizontal
-                if not (j == 0 and i == 0) and ((j == 0 and
-                            ((i < 0 and y > 1) or (i > 0 and y < 3))
-                            and pieces[y + i][x] == 0 and pieces[y + i + i][x] == notturn)
-                        or (i == 0 and
-                            ((j < 0 and x > 1) or (j > 0 and x < 7))
-                            and pieces[y][x + j] == 0 and pieces[y][x + j + j] == notturn)
-                        or ((x + y) % 2 == 0 and (
-                            (i < 0 and j < 0 and x > 1 and y > 1)
-                            or (i > 0 and j > 0 and x < 7 and y < 3)
-                            or (j < 0 < i and x > 1 and y < 3)
-                            or (i < 0 < j and x < 7 and y > 1))
-                            and pieces[y + i][x + j] == 0 and pieces[y + i + i][x + j + j] == notturn)):
-                    possibilities_approach[(j, i)] = "approach"
-    return possibilities_approach
+def mark_all_movables():
+    global paika
+    reset_movable()
+    for i in range(5):
+        for j in range(9):
+            if pieces[i][j] == turn:
+                movable[i][j] = check_single_movable(j, i)
+    if no_movables():
+        paika = True
+        for i in range(5):
+            for j in range(9):
+                if pieces[i][j] == turn:
+                    movable[i][j] = check_single_paika(j, i)
+    else:
+        paika = False
 
 
-# movable_to_by_withdrawal(piece_x, piece_y)
-# -> possibilities dictionary {(dx1, dy1): "withdrawal", (dx2, dy2): "withdrawal"}
-def movable_to_by_withdrawal(x, y):
-    possibilities_withdrawal = {}
-    if pieces[y][x] == turn:
-        for i in range(-1, 2):  # vertical
-            for j in range(-1, 2):  # horizontal
-                if not (j == 0 and i == 0) and (
-                            (j == 0 < y < 4 and not i == 0
-                            and pieces[y + i][x] == 0 and pieces[y - i][x] == notturn)
-                        or (i == 0 < x < 8 and not j == 0
-                            and pieces[y][x + j] == 0 and pieces[y][x - j] == notturn)
-                        or ((x + y) % 2 == 0 and (
-                            0 < x < 8 and 0 < y < 4
-                            and pieces[y + i][x + j] == 0 and pieces[y - i][x - j] == notturn))):
-                    possibilities_withdrawal[(j, i)] = "withdrawal"
-    return possibilities_withdrawal
+def mark_to_movables(x, y):
+    tempdirection = create_tempdirection(x, y)
+    if not paika:
+        for i in tempdirection:
+            # print(positions)
+            # print(direction)
+            # print(x, y, i)
+            if possible_approach(x, y, i) and (x + i[0], y + i[1]) not in positions and not direction == i:
+                # print(True)
+                movable[y + i[1]][x + i[0]] = True
+                aw[(x + i[0], y + i[1])] = "approach"
+            if possible_withdrawal(x, y, i) and (x + i[0], y + i[1]) not in positions and not direction == i:
+                # print(True)
+                movable[y + i[1]][x + i[0]] = True
+                if (x + i[0], y + i[1]) in aw:
+                    aw[(x + i[0], y + i[1])] = "both"
+                else:
+                    aw[(x + i[0], y + i[1])] = "withdrawal"
+            # print(aw)
+    else:
+        for i in tempdirection:
+            if possible_paika(x, y, i):
+                movable[y + i[1]][x + i[0]] = True
 
 
-# combine_possibilities(approach_dictionary, withdrawal_dictionary)
-# -> possibilities dictionary {(dx1, dy1): "approach", (dx2, dy2): "withdrawal", (dx3, dy3): "both"}
-def combine_possibilities(approach, withdrawal):
-    possibilities = {}
-    for i in approach:
-        for j in withdrawal:
-            if i == j:
-                possibilities[i] = "both"
-        if i not in possibilities:
-            possibilities[i] = "approach"
-    for i in withdrawal:
-        if i not in possibilities:
-            possibilities[i] = "withdrawal"
-    return possibilities
+def check_single_movable(x, y):
+    tempdirection = create_tempdirection(x, y)
+    for i in tempdirection:
+        if possible_approach(x, y, i) or possible_withdrawal(x, y, i):
+            return True
+    return False
 
 
-def remove_pieces(x1, y1, x2, y2, possibilities):
+def check_single_paika(x, y):
+    tempdirection = create_tempdirection(x, y)
+    for i in tempdirection:
+        if possible_paika(x, y, i):
+            return True
+    return False
+
+
+def possible_approach(x, y, i):
+    if in_bounce_approach(x, y, i) and pieces[y + i[1]][x + i[0]] == 0 and pieces[y + i[1] + i[1]][x + i[0] + i[0]] == notturn:
+        # print(x, i[0], y, i[1])
+        return True
+
+
+def possible_withdrawal(x, y, i):
+    if in_bounce_withdrawal(x, y, i) and pieces[y + i[1]][x + i[0]] == 0 and pieces[y - i[1]][x - i[0]] == notturn:
+        return True
+
+
+def possible_paika(x, y, i):
+    if in_bounce_paika(x, y, i) and pieces[y + i[1]][x + i[0]] == 0:
+        return True
+
+
+def no_movables():
+    for i in range(5):
+        for j in range(9):
+            if movable[i][j]:
+                return False
+    return True
+
+
+def paika_single_check(x, y):
+    tempdirection = create_tempdirection(x, y)
+    for i in tempdirection:
+        if (possible_approach(x, y, i) and (x + i[0], y + i[1]) not in positions and not direction == i) or (
+                possible_withdrawal(x, y, i) and (x + i[0], y + i[1]) not in positions and not direction == i):
+            return False
+    return True
+
+
+def switch_turn():
+    global turn, notturn
+    if turn == 1:
+        turn = 2
+        notturn = 1
+    elif turn == 2:
+        turn = 1
+        notturn = 2
+    else:
+        print("Error: Unknown turns")
+
+
+def remove_pieces(x1, y1, x2, y2):
+    global ask_player, asking
     for i in range(-1, 2):
         for j in range(-1, 2):
             if x2 - x1 == j and y2 - y1 == i:
                 k1 = 0
                 k2 = 0
-                if possibilities[j, i] == "approach":
+                if aw[x2, y2] == "both":
+                    asking = [(x2 + j, y2 + i), (x1 - j, y1 - i)]
+                    ask_player = True
+                    render()
+                elif aw[x2, y2] == "approach":
+                    # print("approach")
+                    # print(x2, j, k2, "and", y2, i, k1)
                     while -1 < x2 + j + k2 < 9 and -1 < y2 + i + k1 < 5 and pieces[y2 + i + k1][x2 + j + k2] == notturn:
                         pieces[y2 + i + k1][x2 + j + k2] = 0
                         k1 += i
                         k2 += j
-                elif possibilities[j, i] == "withdrawal":
+                elif aw[x2, y2] == "withdrawal":
+                    # print("withdrawal")
                     while -1 < x1 - j - k2 < 9 and -1 < y1 - i - k1 < 5 and pieces[y1 - i - k1][x1 - j - k2] == notturn:
                         pieces[y1 - i - k1][x1 - j - k2] = 0
                         k1 += i
@@ -246,7 +311,7 @@ def remove_pieces(x1, y1, x2, y2, possibilities):
 
 
 def set_pieces():
-    global turn, notturn, is_moving, pieces
+    global turn, notturn, is_moving, pieces, positions, aw, direction, ask_player, asking
     for i in range(2):
         for j in range(9):
             pieces[i][j] = 1
@@ -257,15 +322,19 @@ def set_pieces():
     # pieces = [[1, 1, 1, 0, 1, 0, 1, 0, 1], [2, 0, 2, 1, 2, 1, 2, 1, 2], [0, 1, 1, 1, 1, 0, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 2, 2, 2, 2, 2, 2, 2]]
     # pieces = [[1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 2, 2, 2, 2, 2, 2, 2]]
     # pieces = [[1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 2, 1, 0, 0, 0, 0], [2, 2, 2, 2, 2, 2, 2, 2, 2]]
-    pieces = [[1, 1, 1, 1, 1, 1, 1, 1, 1], [2, 0, 2, 1, 2, 1, 2, 1, 2], [0, 1, 1, 1, 1, 0, 1, 1, 1], [0, 1, 0, 2, 1, 0, 0, 0, 0], [2, 2, 2, 2, 2, 2, 2, 2, 2]]
-    # pieces = [[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 2, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    # pieces = [[1, 1, 1, 1, 0, 1, 1, 1, 1], [2, 0, 2, 1, 2, 1, 2, 1, 2], [0, 1, 1, 1, 1, 0, 1, 1, 1], [2, 1, 0, 2, 1, 0, 0, 0, 0], [2, 2, 2, 2, 2, 2, 2, 2, 2]]
+    # pieces = [[1, 0, 2, 1, 0, 0, 0, 0, 0], [2, 0, 1, 2, 0, 0, 0, 0, 1], [0, 0, 1, 0, 2, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 2], [0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
     turn = 2
     notturn = 1
     is_moving = False
+    positions = []
+    aw = {}
+    direction = ()
+    ask_player = False
+    asking = []
 
-    test_all_for_movability()
-
+    mark_all_movables()
     render()
 
 
@@ -274,7 +343,6 @@ def reset_pieces():
         for j in range(9):
             pieces[i][j] = 0
             movable[i][j] = 0
-
     render()
 
 
@@ -291,36 +359,92 @@ def resize(event):
 
 
 def click(event):
-    # global width, correct_width, height, correct_height, dw, dh
-    global moving_x, moving_y, is_moving, possibilities
+    global is_moving, moving_x, moving_y, direction, aw, positions, ask_x, ask_y, ask_player, asking
     if (event.x < (width - correct_width) / 2
             or event.x > ((width - correct_width) / 2) + correct_width
             or event.y < (height - correct_height) / 2
             or event.y > ((height - correct_height) / 2) + correct_height):
         return
-    selected_x = int((event.x - (width - correct_width) / 2) / dw)
-    selected_y = int((event.y - (height - correct_height) / 2) / dh)
-    if not is_moving:
-        moving_x = selected_x
-        moving_y = selected_y
-        possibilities = combine_possibilities(movable_to_by_approach(selected_x, selected_y), movable_to_by_withdrawal(selected_x, selected_y))
-        pieces[selected_y][selected_x] = 3
-        is_moving = True
+    x = int((event.x - (width - correct_width) / 2) / dw)
+    y = int((event.y - (height - correct_height) / 2) / dh)
+    if not ask_player:
+        if pieces[y][x] == 3 and len(positions) == 1:
+            pieces[y][x] = turn
+            mark_all_movables()
+            is_moving = False
+            direction = ()
+            aw = {}
+            positions = []
+            render()
+            return
+        if not movable[y][x]:
+            return
+        # player selects a piece to move
+        if not is_moving:
+            reset_movable()
+            mark_to_movables(x, y)
+            moving_x = x
+            moving_y = y
+            is_moving = True
+            pieces[y][x] = 3
+            positions.append((x, y))
+        else:  # player selects where to move to
+            pieces[moving_y][moving_x] = 0
+            positions.append((x, y))
+            direction = (x - moving_x, y - moving_y)
+            if (x, y) in aw and aw[(x, y)] == "both":
+                pieces[y][x] = 3
+                remove_pieces(moving_x, moving_y, x, y)
+                ask_x = moving_x
+                ask_y = moving_y
+                moving_x = x
+                moving_y = y
+                return
+            if not paika:
+                remove_pieces(moving_x, moving_y, x, y)
+            moving_x = x
+            moving_y = y
+            aw = {}
+            if paika_single_check(x, y) or paika:
+                is_moving = False
+                pieces[y][x] = turn
+                switch_turn()
+                direction = ()
+                positions = []
+                mark_all_movables()
+                render()
+                return
+            pieces[y][x] = 3
+            reset_movable()
+            mark_to_movables(x, y)
+        render()
     else:
-        remove_pieces(moving_x, moving_y, selected_x, selected_y, possibilities)
-    # print(is_movable_by_approach(selected_x, selected_y))
-    # print(is_movable_by_withdrawal(selected_x, selected_y))
-    # print(movable_to_by_approach(selected_x, selected_y))
-    # print(movable_to_by_withdrawal(selected_x, selected_y))
-    # print(combine_possibilities(movable_to_by_approach(selected_x, selected_y), movable_to_by_withdrawal(selected_x, selected_y)))
-    # for i in movable_to_by_approach(selected_x, selected_y):
-        # print(i)
-        # movable[selected_y + i[1]][selected_x + i[0]] = True
-    render()
+        if (x, y) not in asking:
+            return
+        if x - moving_x == 1 or x - moving_x == -1 or y - moving_y == 1 or y - moving_y == -1:
+            aw[moving_x, moving_y] = "approach"
+        else:
+            aw[moving_x, moving_y] = "withdrawal"
+        remove_pieces(ask_x, ask_y, moving_x, moving_y)
+        aw = {}
+        ask_player = False
+        asking = []
+        if paika_single_check(moving_x, moving_y) or paika:
+            is_moving = False
+            pieces[moving_y][moving_x] = turn
+            switch_turn()
+            direction = ()
+            positions = []
+            mark_all_movables()
+            render()
+            return
+        reset_movable()
+        mark_to_movables(moving_x, moving_y)
+        render()
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Interface:
+# INTERFACE:
 
 
 def create_filler(master):
