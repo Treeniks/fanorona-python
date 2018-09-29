@@ -37,7 +37,7 @@ def render():
 
     dw = round(correct_width / 9)
     dh = round(correct_height / 5)
-    thickness = int(correct_width / 225)
+    thickness = int(correct_width / 225) + 1
 
     x = round(width / 2)
     y = round(height / 2)
@@ -46,7 +46,7 @@ def render():
     draw_lines(x, y, correct_width, correct_height, thickness)
     draw_arrows(x, y, correct_width, correct_height, thickness)
     draw_pieces(x, y, correct_width, correct_height, thickness)
-    draw_movable(x, y, correct_width, correct_height)
+    draw_movable(x, y, correct_width, correct_height, thickness)
     draw_positions(x, y, correct_width, correct_height)
     draw_asking(x, y, correct_width, correct_height)
 
@@ -79,32 +79,73 @@ def draw_pieces(x, y, w, h, thickness):
                 c.create_oval(x + dw * (j - 4) - w * (25 / 900),
                               y + dh * (i - 2) - h * (25 / 500),
                               x + dw * (j - 4) + w * (25 / 900),
-                              y + dh * (i - 2) + h * (25 / 500), fill="black", width=thickness)
+                              y + dh * (i - 2) + h * (25 / 500),
+                              fill="black", width=thickness)
             elif pieces[i][j] == 2:
                 c.create_oval(x + dw * (j - 4) - w * (25 / 900),
                               y + dh * (i - 2) - h * (25 / 500),
                               x + dw * (j - 4) + w * (25 / 900),
-                              y + dh * (i - 2) + h * (25 / 500), fill="white", width=thickness)
+                              y + dh * (i - 2) + h * (25 / 500),
+                              fill="white", width=thickness)
             elif pieces[i][j] == 3:
-                c.create_oval(x + dw * (j - 4) - w * (25 / 900),
-                              y + dh * (i - 2) - h * (25 / 500),
-                              x + dw * (j - 4) + w * (25 / 900),
-                              y + dh * (i - 2) + h * (25 / 500), fill="blue", width=thickness)
-            elif pieces[i][j] == 4:
-                c.create_oval(x + dw * (j - 4) - w * (25 / 900),
-                              y + dh * (i - 2) - h * (25 / 500),
-                              x + dw * (j - 4) + w * (25 / 900),
-                              y + dh * (i - 2) + h * (25 / 500), fill="red", width=thickness)
+                if len(positions) == 1:
+                    if turn == 1:
+                        c.create_oval(x + dw * (j - 4) - w * (25 / 900),
+                                      y + dh * (i - 2) - h * (25 / 500),
+                                      x + dw * (j - 4) + w * (25 / 900),
+                                      y + dh * (i - 2) + h * (25 / 500),
+                                      fill="#333333", activefill="#424242", outline="#0032FF", width=thickness)
+                    else:
+                        c.create_oval(x + dw * (j - 4) - w * (25 / 900),
+                                      y + dh * (i - 2) - h * (25 / 500),
+                                      x + dw * (j - 4) + w * (25 / 900),
+                                      y + dh * (i - 2) + h * (25 / 500),
+                                      fill="#EBEBEB", activefill="#D6D6D6", outline="blue", width=thickness)
+                else:
+                    if turn == 1:
+                        c.create_oval(x + dw * (j - 4) - w * (25 / 900),
+                                      y + dh * (i - 2) - h * (25 / 500),
+                                      x + dw * (j - 4) + w * (25 / 900),
+                                      y + dh * (i - 2) + h * (25 / 500),
+                                      fill="#333333", outline="#0032FF", width=thickness)
+                    else:
+                        c.create_oval(x + dw * (j - 4) - w * (25 / 900),
+                                      y + dh * (i - 2) - h * (25 / 500),
+                                      x + dw * (j - 4) + w * (25 / 900),
+                                      y + dh * (i - 2) + h * (25 / 500),
+                                      fill="#EBEBEB", outline="blue", width=thickness)
 
 
-def draw_movable(x, y, w, h):
+def draw_movable(x, y, w, h, thickness):
     for i in range(5):
         for j in range(9):
             if movable[i][j]:
-                c.create_oval(x + dw * (j - 4) - w * (10 / 900),
-                              y + dh * (i - 2) - h * (10 / 500),
-                              x + dw * (j - 4) + w * (10 / 900),
-                              y + dh * (i - 2) + h * (10 / 500), fill="blue", width=0)
+                if pieces[i][j] == 1:
+                    c.create_oval(x + dw * (j - 4) - w * (25 / 900),
+                                  y + dh * (i - 2) - h * (25 / 500),
+                                  x + dw * (j - 4) + w * (25 / 900),
+                                  y + dh * (i - 2) + h * (25 / 500),
+                                  fill="black", outline="#0032FF", activefill="#333333", width=thickness)
+
+                elif pieces[i][j] == 2:
+                    c.create_oval(x + dw * (j - 4) - w * (25 / 900),
+                                  y + dh * (i - 2) - h * (25 / 500),
+                                  x + dw * (j - 4) + w * (25 / 900),
+                                  y + dh * (i - 2) + h * (25 / 500),
+                                  fill="white", outline="blue", activefill="#EBEBEB", width=thickness)
+                else:
+                    if turn == 1:
+                        c.create_oval(x + dw * (j - 4) - w * (15 / 900),
+                                      y + dh * (i - 2) - h * (15 / 500),
+                                      x + dw * (j - 4) + w * (15 / 900),
+                                      y + dh * (i - 2) + h * (15 / 500),
+                                      fill="black", outline="#0032FF", activefill="#333333", width=thickness - 1)
+                    else:
+                        c.create_oval(x + dw * (j - 4) - w * (15 / 900),
+                                      y + dh * (i - 2) - h * (15 / 500),
+                                      x + dw * (j - 4) + w * (15 / 900),
+                                      y + dh * (i - 2) + h * (15 / 500),
+                                      fill="white", outline="blue", activefill="#EBEBEB", width=thickness - 1)
 
 
 def draw_positions(x, y, w, h):
@@ -133,10 +174,10 @@ def draw_arrows(x, y, w, h, thickness):
 
 def draw_asking(x, y, w, h):
     for i in asking:
-        c.create_oval(x + dw * (i[0] -4) - w * (10 / 900),
+        c.create_oval(x + dw * (i[0] - 4) - w * (10 / 900),
                       y + dh * (i[1] - 2) - h * (10 / 500),
                       x + dw * (i[0] - 4) + w * (10 / 900),
-                      y + dh * (i[1] - 2) + h * (10 / 500), fill="yellow", width=0)
+                      y + dh * (i[1] - 2) + h * (10 / 500), fill="yellow", activefill="#D9D900", width=0)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -291,7 +332,6 @@ def remove_pieces(x1, y1, x2, y2):
                 if aw[x2, y2] == "both":
                     asking = [(x2 + j, y2 + i), (x1 - j, y1 - i)]
                     ask_player = True
-                    render()
                 elif aw[x2, y2] == "approach":
                     # print("approach")
                     # print(x2, j, k2, "and", y2, i, k1)
@@ -429,6 +469,8 @@ def click(event):
                 ask_y = moving_y
                 moving_x = x
                 moving_y = y
+                reset_movable()
+                render()
                 return
             if not paika:
                 remove_pieces(moving_x, moving_y, x, y)
