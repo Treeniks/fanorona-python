@@ -335,6 +335,7 @@ def set_pieces():
     ask_player = False
     asking = []
     gamelist = []
+    listbox.delete(0, END)
 
     mark_all_movables()
     render()
@@ -350,6 +351,33 @@ def reset_pieces():
 
 def clear():
     c.delete(ALL)
+
+
+def listboxselect():
+    global turn, notturn, is_moving, pieces, positions, aw, direction, ask_player, asking, gamelist
+    k = listbox.curselection()[0]
+    # print(gamelist[listbox.curselection()[0]])
+    # print(gamelist[k])
+    # print(k)
+    for i in range(5):
+        for j in range(9):
+            pieces[i][j] = gamelist[k][0][i][j]
+    turn = gamelist[k][1]
+    notturn = gamelist[k][2]
+    is_moving = False
+    positions = []
+    aw = {}
+    direction = ()
+    ask_player = False
+    asking = []
+    # print(len(gamelist) - k)
+    for i in range(len(gamelist) - k - 1):
+        # print(i)
+        gamelist.pop(k + 1)
+
+    mark_all_movables()
+    render()
+    listbox.delete(k + 1, END)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -408,6 +436,13 @@ def click(event):
             moving_y = y
             aw = {}
             if paika_single_check(x, y) or paika:
+                pieces[y][x] = turn
+                is_moving = False
+                switch_turn()
+                direction = ()
+                positions = []
+                mark_all_movables()
+
                 gamelist.append([])
                 gamelist[len(gamelist) - 1].append([])
                 for i in range(5):
@@ -416,16 +451,11 @@ def click(event):
                         gamelist[len(gamelist) - 1][0][i].append(j)
                 gamelist[len(gamelist) - 1].append(turn)
                 gamelist[len(gamelist) - 1].append(notturn)
-                print("MOVE #" + str(len(gamelist)))
-                for i in gamelist:
-                    print(i)
+                # print("MOVE #" + str(len(gamelist)))
+                # for i in gamelist:
+                #     print(i)
                 listbox.insert(END, "Move #" + str(len(gamelist)))
-                is_moving = False
-                pieces[y][x] = turn
-                switch_turn()
-                direction = ()
-                positions = []
-                mark_all_movables()
+
                 render()
                 return
             pieces[y][x] = 3
@@ -444,6 +474,13 @@ def click(event):
         ask_player = False
         asking = []
         if paika_single_check(moving_x, moving_y) or paika:
+            pieces[moving_y][moving_x] = turn
+            is_moving = False
+            switch_turn()
+            direction = ()
+            positions = []
+            mark_all_movables()
+
             gamelist.append([])
             gamelist[len(gamelist) - 1].append([])
             for i in range(5):
@@ -452,16 +489,11 @@ def click(event):
                     gamelist[len(gamelist) - 1][0][i].append(j)
             gamelist[len(gamelist) - 1].append(turn)
             gamelist[len(gamelist) - 1].append(notturn)
-            print("MOVE #" + str(len(gamelist)))
-            for i in gamelist:
-                print(i)
+            # print("MOVE #" + str(len(gamelist)))
+            # for i in gamelist:
+            #     print(i)
             listbox.insert(END, "Move #" + str(len(gamelist)))
-            is_moving = False
-            pieces[moving_y][moving_x] = turn
-            switch_turn()
-            direction = ()
-            positions = []
-            mark_all_movables()
+
             render()
             return
         reset_movable()
@@ -472,38 +504,78 @@ def click(event):
 # ----------------------------------------------------------------------------------------------------------------------
 # INTERFACE:
 
-
-def create_filler(master):
-    filler = Frame(master, width=10)
-    filler.pack(side=LEFT)
-
-
 root = Tk()
 root.title("Fanorona")
 root.minsize(width=600, height=250)
 
-# create_filler(root)
+# configuring grid information
+root.grid_rowconfigure(0, weight=1)
+root.grid_columnconfigure(2, weight=1)
 
+# Column 0: Listbox
 listbox = Listbox(root)
-listbox.pack(fill=Y, side=LEFT)
+selectlistbox = Button(root, text="select", command=listboxselect)
 
-create_filler(root)
+listbox.grid(row=0, column=0, sticky=N+S)
+selectlistbox.grid(row=1, column=0, sticky=W+E)
 
+# Column 1: Menu
 menu = Frame(root)
-menu.pack(side=LEFT)
-
 clear = Button(menu, text="Clear Everything", command=clear)
-clear.pack()
 place = Button(menu, text="Start Game", command=set_pieces)
-place.pack()
 reset = Button(menu, text="Reset Pieces", command=reset_pieces)
+
+menu.grid(row=0, column=1, rowspan=2)
+clear.pack()
+place.pack()
 reset.pack()
 
+# Columns 2: Canvas
 c = Canvas(root, width=900, height=500)
-c.pack(fill=BOTH, expand=1, side=LEFT)
+c.grid(row=0, column=2, rowspan=2, sticky=N+S+W+E)
+
+# binds
 c.bind("<Configure>", resize)
 c.bind("<Button-1>", click)
 
+# def create_filler(master):
+#     filler = Frame(master, width=10)
+#     filler.pack(side=LEFT)
+#
+#
+# root = Tk()
+# root.title("Fanorona")
+# root.minsize(width=600, height=250)
+#
+# # create_filler(root)
+#
+# listframe = Frame(root, bg="blue")
+# listbox = Listbox(listframe)
+# selection = Button(listframe, text="Select")
+#
+# listframe.pack(fill=Y, side=LEFT)
+# listbox.grid(row=0, column=0, sticky=N+S)
+# selection.grid(row=1, column=0)
+#
+# listframe.grid_rowconfigure(0, weight=1)
+#
+# create_filler(root)
+#
+# menu = Frame(root)
+# clear = Button(menu, text="Clear Everything", command=clear)
+# place = Button(menu, text="Start Game", command=set_pieces)
+# reset = Button(menu, text="Reset Pieces", command=reset_pieces)
+#
+# menu.pack(side=LEFT)
+# clear.pack()
+# place.pack()
+# reset.pack()
+#
+# c = Canvas(root, width=900, height=500)
+# c.pack(fill=BOTH, expand=1, side=LEFT)
+# c.bind("<Configure>", resize)
+# c.bind("<Button-1>", click)
+#
 # listbox.bind("<<ListboxSelect>>", selecting_previous)
 
 root.mainloop()
