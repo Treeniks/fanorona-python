@@ -17,6 +17,7 @@ aw = {}
 positions = []
 asking = []
 ask_player = False
+gamelist = []
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -311,7 +312,7 @@ def remove_pieces(x1, y1, x2, y2):
 
 
 def set_pieces():
-    global turn, notturn, is_moving, pieces, positions, aw, direction, ask_player, asking
+    global turn, notturn, is_moving, pieces, positions, aw, direction, ask_player, asking, gamelist
     for i in range(2):
         for j in range(9):
             pieces[i][j] = 1
@@ -333,6 +334,7 @@ def set_pieces():
     direction = ()
     ask_player = False
     asking = []
+    gamelist = []
 
     mark_all_movables()
     render()
@@ -406,6 +408,18 @@ def click(event):
             moving_y = y
             aw = {}
             if paika_single_check(x, y) or paika:
+                gamelist.append([])
+                gamelist[len(gamelist) - 1].append([])
+                for i in range(5):
+                    gamelist[len(gamelist) - 1][0].append([])
+                    for j in pieces[i]:
+                        gamelist[len(gamelist) - 1][0][i].append(j)
+                gamelist[len(gamelist) - 1].append(turn)
+                gamelist[len(gamelist) - 1].append(notturn)
+                print("MOVE #" + str(len(gamelist)))
+                for i in gamelist:
+                    print(i)
+                listbox.insert(END, "Move #" + str(len(gamelist)))
                 is_moving = False
                 pieces[y][x] = turn
                 switch_turn()
@@ -430,6 +444,18 @@ def click(event):
         ask_player = False
         asking = []
         if paika_single_check(moving_x, moving_y) or paika:
+            gamelist.append([])
+            gamelist[len(gamelist) - 1].append([])
+            for i in range(5):
+                gamelist[len(gamelist) - 1][0].append([])
+                for j in pieces[i]:
+                    gamelist[len(gamelist) - 1][0][i].append(j)
+            gamelist[len(gamelist) - 1].append(turn)
+            gamelist[len(gamelist) - 1].append(notturn)
+            print("MOVE #" + str(len(gamelist)))
+            for i in gamelist:
+                print(i)
+            listbox.insert(END, "Move #" + str(len(gamelist)))
             is_moving = False
             pieces[moving_y][moving_x] = turn
             switch_turn()
@@ -477,5 +503,7 @@ c = Canvas(root, width=900, height=500)
 c.pack(fill=BOTH, expand=1, side=LEFT)
 c.bind("<Configure>", resize)
 c.bind("<Button-1>", click)
+
+# listbox.bind("<<ListboxSelect>>", selecting_previous)
 
 root.mainloop()
