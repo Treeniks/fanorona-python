@@ -18,6 +18,7 @@ positions = []
 asking = []
 ask_player = False
 gamelist = []
+win = 0
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -47,8 +48,9 @@ def render():
     draw_arrows(x, y, correct_width, correct_height, thickness)
     draw_pieces(x, y, correct_width, correct_height, thickness)
     draw_movable(x, y, correct_width, correct_height, thickness)
-    draw_positions(x, y, correct_width, correct_height)
-    draw_asking(x, y, correct_width, correct_height)
+    draw_positions(x, y, correct_width, correct_height, thickness)
+    draw_asking(x, y, correct_width, correct_height, thickness)
+    draw_win(x, y, correct_width, correct_height, thickness)
 
 
 # drawing board lines
@@ -148,7 +150,7 @@ def draw_movable(x, y, w, h, thickness):
                                       fill="white", outline="blue", activefill="#EBEBEB", width=thickness - 1)
 
 
-def draw_positions(x, y, w, h):
+def draw_positions(x, y, w, h, thickness):
     for i in range(len(positions) - 1):
         c.create_oval(x + dw * (positions[i][0] - 4) - w * (10 / 900),
                       y + dh * (positions[i][1] - 2) - h * (10 / 500),
@@ -169,15 +171,37 @@ def draw_arrows(x, y, w, h, thickness):
         c.create_line(x - (4 - positions[i][0]) * dw,
                       y - (2 - positions[i][1]) * dh,
                       ((x - (4 - positions[i + 1][0]) * dw) + (x - (4 - positions[i][0]) * dw)) / 2,
-                      ((y - (2 - positions[i + 1][1]) * dh) + (y - (2 - positions[i][1]) * dh)) / 2, fill="red", arrow="last", width=thickness)
+                      ((y - (2 - positions[i + 1][1]) * dh) + (y - (2 - positions[i][1]) * dh)) / 2,
+                      fill="red", arrow="last", width=thickness)
 
 
-def draw_asking(x, y, w, h):
+def draw_asking(x, y, w, h, thickness):
     for i in asking:
-        c.create_oval(x + dw * (i[0] - 4) - w * (10 / 900),
-                      y + dh * (i[1] - 2) - h * (10 / 500),
-                      x + dw * (i[0] - 4) + w * (10 / 900),
-                      y + dh * (i[1] - 2) + h * (10 / 500), fill="yellow", activefill="#D9D900", width=0)
+        if pieces[i[1]][i[0]] == 1:
+            c.create_oval(x + dw * (i[0] - 4) - w * (25 / 900),
+                          y + dh * (i[1] - 2) - h * (25 / 500),
+                          x + dw * (i[0] - 4) + w * (25 / 900),
+                          y + dh * (i[1] - 2) + h * (25 / 500),
+                          fill="black", activefill="#333333", outline="red", width=thickness)
+        if pieces[i[1]][i[0]] == 2:
+            c.create_oval(x + dw * (i[0] - 4) - w * (25 / 900),
+                          y + dh * (i[1] - 2) - h * (25 / 500),
+                          x + dw * (i[0] - 4) + w * (25 / 900),
+                          y + dh * (i[1] - 2) + h * (25 / 500),
+                          fill="white", activefill="#EBEBEB", outline="red", width=thickness)
+
+
+def draw_win(x, y, w, h, thickness):
+    if win == 1:
+        text = c.create_text(x, y, text="White won!", font=("Arial", int(w / 20)))
+        bbox = c.bbox(text)
+        rect = c.create_rectangle(bbox, fill="white", outline="black", width=thickness)
+        c.tag_raise(text, rect)
+    elif win == 2:
+        text = c.create_text(x, y, text="Black won!", font=("Arial", int(w / 20)), fill="white")
+        bbox = c.bbox(text)
+        rect = c.create_rectangle(bbox, fill="black", outline="white", width=thickness)
+        c.tag_raise(text, rect)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -347,12 +371,36 @@ def remove_pieces(x1, y1, x2, y2):
                         k2 += j
 
 
+def win_check():
+    global win
+    if check_white_win():
+        win = 2
+    elif check_black_win():
+        win = 1
+
+
+def check_white_win():
+    for i in pieces:
+        for j in i:
+            if j == 2:
+                return False
+    return True
+
+
+def check_black_win():
+    for i in pieces:
+        for j in i:
+            if j == 1:
+                return False
+    return True
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # BUTTON COMMANDS:
 
 
 def set_pieces():
-    global turn, notturn, is_moving, pieces, positions, aw, direction, ask_player, asking, gamelist
+    global turn, notturn, is_moving, pieces, positions, aw, direction, ask_player, asking, gamelist, win
     for i in range(2):
         for j in range(9):
             pieces[i][j] = 1
@@ -365,6 +413,8 @@ def set_pieces():
     # pieces = [[1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 2, 1, 0, 0, 0, 0], [2, 2, 2, 2, 2, 2, 2, 2, 2]]
     # pieces = [[1, 1, 1, 1, 0, 1, 1, 1, 1], [2, 0, 2, 1, 2, 1, 2, 1, 2], [0, 1, 1, 1, 1, 0, 1, 1, 1], [2, 1, 0, 2, 1, 0, 0, 0, 0], [2, 2, 2, 2, 2, 2, 2, 2, 2]]
     # pieces = [[1, 0, 2, 1, 0, 0, 0, 0, 0], [2, 0, 1, 2, 0, 0, 0, 0, 1], [0, 0, 1, 0, 2, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 2], [0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    # pieces = [[1, 1, 1, 0, 0, 0, 0, 0, 0], [1, 2, 1, 0, 0, 0, 0, 0, 0], [1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    # pieces = [[0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 2, 0, 1, 0, 0, 0, 0], [0, 1, 1, 1, 0, 0, 0, 0, 0], [0, 1, 1, 1, 0, 0, 0, 2, 2], [0, 0, 0, 0, 0, 0, 2, 2, 2]]
 
     turn = 2
     notturn = 1
@@ -375,6 +425,7 @@ def set_pieces():
     ask_player = False
     asking = []
     gamelist = []
+    win = 0
     listbox.delete(0, END)
 
     mark_all_movables()
@@ -410,6 +461,7 @@ def listboxselect():
     direction = ()
     ask_player = False
     asking = []
+    win_check()
     # print(len(gamelist) - k)
     for i in range(len(gamelist) - k - 1):
         # print(i)
@@ -418,6 +470,32 @@ def listboxselect():
     mark_all_movables()
     render()
     listbox.delete(k + 1, END)
+
+
+def undo():
+    global turn, notturn, is_moving, pieces, positions, aw, direction, ask_player, asking, gamelist
+    if len(positions) == 0:
+        k = len(gamelist) - 2
+        for i in range(5):
+            for j in range(9):
+                pieces[i][j] = gamelist[k][0][i][j]
+        turn = gamelist[k][1]
+        notturn = gamelist[k][2]
+        is_moving = False
+        positions = []
+        aw = {}
+        direction = ()
+        ask_player = False
+        asking = []
+        win_check()
+        # print(len(gamelist) - k)
+        for i in range(len(gamelist) - k - 1):
+            # print(i)
+            gamelist.pop(k + 1)
+
+        mark_all_movables()
+        render()
+        listbox.delete(k + 1, END)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -429,61 +507,102 @@ def resize(event):
 
 
 def click(event):
-    global is_moving, moving_x, moving_y, direction, aw, positions, ask_x, ask_y, ask_player, asking
-    if (event.x < (width - correct_width) / 2
-            or event.x > ((width - correct_width) / 2) + correct_width
-            or event.y < (height - correct_height) / 2
-            or event.y > ((height - correct_height) / 2) + correct_height):
-        return
-    x = int((event.x - (width - correct_width) / 2) / dw)
-    y = int((event.y - (height - correct_height) / 2) / dh)
-    if not ask_player:
-        if pieces[y][x] == 3 and len(positions) == 1:
-            pieces[y][x] = turn
-            mark_all_movables()
-            is_moving = False
-            direction = ()
-            aw = {}
-            positions = []
-            render()
+    if win == 0:
+        global is_moving, moving_x, moving_y, direction, aw, positions, ask_x, ask_y, ask_player, asking
+        if (event.x < (width - correct_width) / 2
+                or event.x > ((width - correct_width) / 2) + correct_width
+                or event.y < (height - correct_height) / 2
+                or event.y > ((height - correct_height) / 2) + correct_height):
             return
-        if not movable[y][x]:
-            return
-        # player selects a piece to move
-        if not is_moving:
-            reset_movable()
-            mark_to_movables(x, y)
-            moving_x = x
-            moving_y = y
-            is_moving = True
-            pieces[y][x] = 3
-            positions.append((x, y))
-        else:  # player selects where to move to
-            pieces[moving_y][moving_x] = 0
-            positions.append((x, y))
-            direction = (x - moving_x, y - moving_y)
-            if (x, y) in aw and aw[(x, y)] == "both":
-                pieces[y][x] = 3
-                remove_pieces(moving_x, moving_y, x, y)
-                ask_x = moving_x
-                ask_y = moving_y
-                moving_x = x
-                moving_y = y
-                reset_movable()
+        x = int((event.x - (width - correct_width) / 2) / dw)
+        y = int((event.y - (height - correct_height) / 2) / dh)
+        if not ask_player:
+            if pieces[y][x] == 3 and len(positions) == 1:
+                pieces[y][x] = turn
+                mark_all_movables()
+                is_moving = False
+                direction = ()
+                aw = {}
+                positions = []
                 render()
                 return
-            if not paika:
-                remove_pieces(moving_x, moving_y, x, y)
-            moving_x = x
-            moving_y = y
+            if not movable[y][x]:
+                return
+            # player selects a piece to move
+            if not is_moving:
+                reset_movable()
+                mark_to_movables(x, y)
+                moving_x = x
+                moving_y = y
+                is_moving = True
+                pieces[y][x] = 3
+                positions.append((x, y))
+            else:  # player selects where to move to
+                pieces[moving_y][moving_x] = 0
+                positions.append((x, y))
+                direction = (x - moving_x, y - moving_y)
+                if (x, y) in aw and aw[(x, y)] == "both":
+                    pieces[y][x] = 3
+                    remove_pieces(moving_x, moving_y, x, y)
+                    ask_x = moving_x
+                    ask_y = moving_y
+                    moving_x = x
+                    moving_y = y
+                    reset_movable()
+                    render()
+                    return
+                if not paika:
+                    remove_pieces(moving_x, moving_y, x, y)
+                moving_x = x
+                moving_y = y
+                aw = {}
+                if paika_single_check(x, y) or paika:
+                    pieces[y][x] = turn
+                    is_moving = False
+                    switch_turn()
+                    direction = ()
+                    positions = []
+                    mark_all_movables()
+                    win_check()
+
+                    gamelist.append([])
+                    gamelist[len(gamelist) - 1].append([])
+                    for i in range(5):
+                        gamelist[len(gamelist) - 1][0].append([])
+                        for j in pieces[i]:
+                            gamelist[len(gamelist) - 1][0][i].append(j)
+                    gamelist[len(gamelist) - 1].append(turn)
+                    gamelist[len(gamelist) - 1].append(notturn)
+                    # print("MOVE #" + str(len(gamelist)))
+                    # for i in gamelist:
+                    #     print(i)
+                    listbox.insert(END, "Move #" + str(len(gamelist)))
+
+                    render()
+                    return
+                pieces[y][x] = 3
+                reset_movable()
+                mark_to_movables(x, y)
+            render()
+        else:
+            if (x, y) not in asking:
+                return
+            if x - moving_x == 1 or x - moving_x == -1 or y - moving_y == 1 or y - moving_y == -1:
+                aw[moving_x, moving_y] = "approach"
+            else:
+                aw[moving_x, moving_y] = "withdrawal"
+            remove_pieces(ask_x, ask_y, moving_x, moving_y)
             aw = {}
-            if paika_single_check(x, y) or paika:
-                pieces[y][x] = turn
+            ask_player = False
+            asking = []
+            if paika_single_check(moving_x, moving_y) or paika:
+                pieces[moving_y][moving_x] = turn
                 is_moving = False
                 switch_turn()
                 direction = ()
                 positions = []
                 mark_all_movables()
+                win_check()
 
                 gamelist.append([])
                 gamelist[len(gamelist) - 1].append([])
@@ -500,47 +619,9 @@ def click(event):
 
                 render()
                 return
-            pieces[y][x] = 3
             reset_movable()
-            mark_to_movables(x, y)
-        render()
-    else:
-        if (x, y) not in asking:
-            return
-        if x - moving_x == 1 or x - moving_x == -1 or y - moving_y == 1 or y - moving_y == -1:
-            aw[moving_x, moving_y] = "approach"
-        else:
-            aw[moving_x, moving_y] = "withdrawal"
-        remove_pieces(ask_x, ask_y, moving_x, moving_y)
-        aw = {}
-        ask_player = False
-        asking = []
-        if paika_single_check(moving_x, moving_y) or paika:
-            pieces[moving_y][moving_x] = turn
-            is_moving = False
-            switch_turn()
-            direction = ()
-            positions = []
-            mark_all_movables()
-
-            gamelist.append([])
-            gamelist[len(gamelist) - 1].append([])
-            for i in range(5):
-                gamelist[len(gamelist) - 1][0].append([])
-                for j in pieces[i]:
-                    gamelist[len(gamelist) - 1][0][i].append(j)
-            gamelist[len(gamelist) - 1].append(turn)
-            gamelist[len(gamelist) - 1].append(notturn)
-            # print("MOVE #" + str(len(gamelist)))
-            # for i in gamelist:
-            #     print(i)
-            listbox.insert(END, "Move #" + str(len(gamelist)))
-
+            mark_to_movables(moving_x, moving_y)
             render()
-            return
-        reset_movable()
-        mark_to_movables(moving_x, moving_y)
-        render()
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -556,18 +637,20 @@ root.grid_columnconfigure(2, weight=1)
 
 # Column 0: Listbox
 listbox = Listbox(root)
-selectlistbox = Button(root, text="select", command=listboxselect)
+selectlistbox = Button(root, text="Select", command=listboxselect)
 
 listbox.grid(row=0, column=0, sticky=N+S)
 selectlistbox.grid(row=1, column=0, sticky=W+E)
 
 # Column 1: Menu
 menu = Frame(root)
+undo = Button(menu, text="Undo", command=undo)
 clear = Button(menu, text="Clear Everything", command=clear)
 place = Button(menu, text="Start Game", command=set_pieces)
 reset = Button(menu, text="Reset Pieces", command=reset_pieces)
 
 menu.grid(row=0, column=1, rowspan=2)
+undo.pack()
 clear.pack()
 place.pack()
 reset.pack()
