@@ -216,7 +216,7 @@ def draw_arrows(x, y, w, h, thickness):
                       y - (2 - positions[i][1]) * dh,
                       ((x - (4 - positions[i + 1][0]) * dw) + (x - (4 - positions[i][0]) * dw)) / 2,
                       ((y - (2 - positions[i + 1][1]) * dh) + (y - (2 - positions[i][1]) * dh)) / 2,
-                      fill="red", arrow="last", width=thickness)
+                      fill="red", arrow="last", arrowshape=(14, 16, 7), width=thickness)
 
 
 def draw_aimove(x, y, w, h, thickness):
@@ -237,7 +237,7 @@ def draw_aimove(x, y, w, h, thickness):
                       y - (2 - ai_moves[i][1]) * dh,
                       ((x - (4 - ai_moves[i + 1][0]) * dw) + (x - (4 - ai_moves[i][0]) * dw)) / 2,
                       ((y - (2 - ai_moves[i + 1][1]) * dh) + (y - (2 - ai_moves[i][1]) * dh)) / 2,
-                      fill="red", arrow="last", width=thickness)
+                      fill="red", arrow="last", arrowshape=(14, 16, 7), width=thickness)
 
 
 def draw_asking(x, y, w, h, thickness):
@@ -332,6 +332,7 @@ def in_bounce_approach(x, y, i):
     else:
         return False
 
+# in_bounce_approach([1, 2, 4], 2, [1, 2, 3])
 
 def in_bounce_withdrawal(x, y, i):
     if -1 < x - i[0] < 9 and -1 < y - i[1] < 5 and -1 < x + i[0] < 9 and -1 < y + i[1] < 5:
@@ -649,6 +650,10 @@ def ai():
     global pieces, ai_moves, ai_pieces, ai_moveslist, tree
     if not menu_pos == 2:
         return
+    if is_moving:
+        return
+    if ask_player:
+        return
     ai_moves.clear()
     ai_pieces = [copy.deepcopy(pieces)]
     ai_moveslist = []
@@ -672,7 +677,7 @@ def ai():
         if len(ai_pieces) < 3:
             break
 
-    '''
+
     # printing ai_pieces:
     n = 0
     for i in range(len(ai_pieces)):
@@ -683,7 +688,7 @@ def ai():
                 print(ai_pieces[i][j])
             else:
                 print(ai_pieces[i][j])
-    '''
+
 
     score = copy.deepcopy(tree[-1])
 
@@ -830,13 +835,11 @@ def set_pieces():
     pieces[2] = [1, 2, 1, 2, 0, 1, 2, 1, 2]
 
     '''
-    for i in range(2):
+    for i in range(5):
         for j in range(9):
             pieces[i][j] = 0
-    for i in range(3, 5):
-        for j in range(9):
-            pieces[i][j] = 0
-    pieces[2] = [0, 1, 2, 0, 0, 0, 0, 0, 0]
+    pieces[1] = [0, 0, 0, 1, 0, 0, 0, 0, 0]
+    pieces[3] = [0, 0, 2, 0, 1, 0, 0, 0, 0]
     '''
 
     '''
