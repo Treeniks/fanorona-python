@@ -46,6 +46,28 @@ p2color = (None, "black")
 # starting render process
 def render():
     global width, correct_width, height, correct_height, dw, dh, x, y
+    if depth == 1:
+        depth_menu.entryconfigure(0, label="✓ Easy (1)")
+    else:
+        depth_menu.entryconfigure(0, label="Easy (1)")
+    if depth == 2:
+        depth_menu.entryconfigure(1, label="✓ Normal (2)")
+    else:
+        depth_menu.entryconfigure(1, label="Normal (2)")
+    if depth == 3:
+        depth_menu.entryconfigure(2, label="✓ Hard (3)")
+    else:
+        depth_menu.entryconfigure(2, label="Hard (3)")
+    if depth > 3:
+        depth_menu.entryconfigure(3, label="✓ Custom (" + str(depth) + ")")
+    else:
+        depth_menu.entryconfigure(3, label="Custom")
+
+    if ai_game:
+        ai_menu.entryconfigure(0, label="Turn AI Off")
+    else:
+        ai_menu.entryconfigure(0, label="Turn AI On")
+
     width = correct_width = c.winfo_width()
     height = correct_height = c.winfo_height()
 
@@ -292,9 +314,6 @@ def draw_menu_ai(x, y, w, h, thickness):
                   text="◄ Back", font=("Arial", fontsize2))
 
 
-
-
-
 # ----------------------------------------------------------------------------------------------------------------------
 # GAME LOGIC:
 
@@ -464,16 +483,27 @@ def remove_pieces(x1, y1, x2, y2, pieceslist=pieces, awdict=aw, notturnvar=0):
 
 
 def win_check():
+    global menu_pos
     if check_black_win():
         msg = messagebox.askyesno("Black Won!", "Black Won!\nDo you want a rematch?")
         if msg:
             set_pieces()
             return True
+        else:
+            menu_pos = 0
+            listbox.delete(0, END)
+            gamelist.clear()
+            render()
     elif check_white_win():
         msg = messagebox.askyesno("White Won!", "White Won!\nDo you want a rematch?")
         if msg:
             set_pieces()
             return True
+        else:
+            menu_pos = 0
+            listbox.delete(0, END)
+            gamelist.clear()
+            render()
 
 
 def check_white_win():
@@ -617,6 +647,8 @@ def valuation(valpieces):
 
 def ai():
     global pieces, ai_moves, ai_pieces, ai_moveslist, tree
+    if not menu_pos == 2:
+        return
     ai_moves.clear()
     ai_pieces = [copy.deepcopy(pieces)]
     ai_moveslist = []
@@ -721,7 +753,10 @@ def ai():
     gamelist[-1].append(turn)
     gamelist[-1].append(notturn)
 
-    listbox.insert(END, "Move #" + str(len(gamelist)))
+    if turn == 1:
+        listbox.insert(END, "Move #" + str(len(gamelist)) + " (White)")
+    else:
+        listbox.insert(END, "Move #" + str(len(gamelist)) + " (Black)")
 
     mark_all_movables()
     render()
@@ -734,6 +769,8 @@ def ai():
 
 def undo():
     global turn, notturn, is_moving, pieces, positions, aw, direction, ask_player, asking, gamelist
+    if not menu_pos == 2:
+        return
     if len(positions) > 0:
         return
     if len(gamelist) < 2:
@@ -791,6 +828,16 @@ def set_pieces():
         for j in range(9):
             pieces[i][j] = 2
     pieces[2] = [1, 2, 1, 2, 0, 1, 2, 1, 2]
+
+    '''
+    for i in range(2):
+        for j in range(9):
+            pieces[i][j] = 0
+    for i in range(3, 5):
+        for j in range(9):
+            pieces[i][j] = 0
+    pieces[2] = [0, 1, 2, 0, 0, 0, 0, 0, 0]
+    '''
 
     '''
     o = [[0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 1, 1, 0, 0, 0], [2, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 2, 0, 2, 0, 0, 0]]
@@ -861,40 +908,48 @@ def clear():
 
 def listboxselect():
     global turn, notturn, is_moving, pieces, positions, aw, direction, ask_player, asking, gamelist
-    k = listbox.curselection()[0]
-    for i in range(5):
-        for j in range(9):
-            pieces[i][j] = copy.deepcopy(gamelist[k][0][i][j])
-    turn = gamelist[k][1]
-    notturn = gamelist[k][2]
-    is_moving = False
-    positions.clear()
-    ai_moves.clear()
-    aw.clear()
-    direction = ()
-    ask_player = False
-    asking.clear()
-    for i in range(len(gamelist) - k - 1):
-        gamelist.pop(k + 1)
+    if len(listbox.curselection()) > 0:
+        k = listbox.curselection()[0]
+        if ai_game and not gamelist[k][1] == turn:
+            msg = messagebox.askyesno("Changing Color", "If you go back to this move, you will change color.\nAre you sure you want to change your color?")
+            if not msg:
+                return
+        for i in range(5):
+            for j in range(9):
+                pieces[i][j] = copy.deepcopy(gamelist[k][0][i][j])
+        turn = gamelist[k][1]
+        notturn = gamelist[k][2]
+        is_moving = False
+        positions.clear()
+        ai_moves.clear()
+        aw.clear()
+        direction = ()
+        ask_player = False
+        asking.clear()
+        for i in range(len(gamelist) - k - 1):
+            gamelist.pop(k + 1)
 
-    mark_all_movables()
-    render()
-    listbox.delete(k + 1, END)
+        mark_all_movables()
+        render()
+        listbox.delete(k + 1, END)
 
 
 def set_depth_one():
     global depth
     depth = 1
+    render()
 
 
 def set_depth_two():
     global depth
     depth = 2
+    render()
 
 
 def set_depth_three():
     global depth
     depth = 3
+    render()
 
 
 def custom_depth():
@@ -903,6 +958,7 @@ def custom_depth():
     if cstm:
         cstmdpth = simpledialog.askinteger(title="Custom Depth", prompt="Depth:", minvalue=1, maxvalue=10)
         depth = cstmdpth
+    render()
 
 
 def canvas_color_pick():
@@ -930,6 +986,7 @@ def menubar_back():
     global menu_pos
     menu_pos = 0
     listbox.delete(0, END)
+    gamelist.clear()
     render()
 
 
@@ -937,7 +994,18 @@ def menubar_ai_game():
     global menu_pos
     menu_pos = 1
     listbox.delete(0, END)
+    gamelist.clear()
     render()
+
+
+def toggle_ai():
+    global ai_game, depth, menu_pos
+    if ai_game:
+        ai_game = False
+        messagebox.showinfo("AI is now off!", "The AI is now turned off.\n2 Player Mode")
+    else:
+        ai_game = True
+        messagebox.showinfo("AI is now on!", "The AI is now turned on.\n1 Player Mode")
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1013,7 +1081,10 @@ def click(event):
                     gamelist[-1].append(turn)
                     gamelist[-1].append(notturn)
 
-                    listbox.insert(END, "Move #" + str(len(gamelist)))
+                    if turn == 1:
+                        listbox.insert(END, "Move #" + str(len(gamelist)) + " (White)")
+                    else:
+                        listbox.insert(END, "Move #" + str(len(gamelist)) + " (Black)")
 
                     render()
                     c.update()
@@ -1051,7 +1122,10 @@ def click(event):
                 gamelist[-1].append(turn)
                 gamelist[-1].append(notturn)
 
-                listbox.insert(END, "Move #" + str(len(gamelist)))
+                if turn == 1:
+                    listbox.insert(END, "Move #" + str(len(gamelist)) + " (White)")
+                else:
+                    listbox.insert(END, "Move #" + str(len(gamelist)) + " (Black)")
 
                 render()
                 c.update()
@@ -1172,8 +1246,8 @@ root.title("Fanorona")
 root.minsize(width=600, height=250)
 
 # configuring grid information
-root.grid_rowconfigure(0, weight=1)
-root.grid_columnconfigure(2, weight=1)
+root.grid_rowconfigure(2, weight=1)
+root.grid_columnconfigure(1, weight=1)
 
 menubar = Menu(root)
 
@@ -1187,6 +1261,9 @@ menubar.add_cascade(menu=match_menu, label="Match")
 
 ai_menu = Menu(menubar, tearoff=0)
 depth_menu = Menu(ai_menu, tearoff=0)
+
+ai_menu.add_command(label="Toggle AI", command=toggle_ai)
+ai_menu.add_command(label="AI Move (Color Change)", command=ai)
 
 depth_menu.add_command(label="Easy (1)", command=set_depth_one)
 depth_menu.add_command(label="Normal (2)", command=set_depth_two)
@@ -1208,10 +1285,20 @@ root.config(menu=menubar)
 
 # column 0: listbox
 listbox = Listbox(root)
-selectlistbox = Button(root, text="Select", command=listboxselect)
+selectlistbox = Button(root, text="Goto:", command=listboxselect)
+undobutton = Button(root, text="Undo", command=undo)
 
-listbox.grid(row=0, column=0, sticky=N+S)
+undobutton.grid(row=0, column=0, sticky=W+E)
 selectlistbox.grid(row=1, column=0, sticky=W+E)
+listbox.grid(row=2, column=0, sticky=N+S)
+
+# column 0: Frames
+
+# frame1 = Frame(root, height=10)
+# frame1.grid(row=0, column=0, sticky=W+E)
+
+# frame2 = Frame(root, height=10)
+# frame2.grid(row=4, column=0, sticky=W+E)
 
 ''' OLD MENU:
 # column 1: menu
@@ -1234,7 +1321,7 @@ reset.pack(fill=X)
 
 # Columns 2: Canvas
 c = Canvas(root, width=900, height=500)
-c.grid(row=0, column=2, rowspan=2, sticky=N+S+W+E)
+c.grid(row=0, column=1, rowspan=3, sticky=N+S+W+E)
 
 # binds
 c.bind("<Configure>", resize)
