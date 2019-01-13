@@ -332,7 +332,6 @@ def in_bounce_approach(x, y, i):
     else:
         return False
 
-# in_bounce_approach([1, 2, 4], 2, [1, 2, 3])
 
 def in_bounce_withdrawal(x, y, i):
     if -1 < x - i[0] < 9 and -1 < y - i[1] < 5 and -1 < x + i[0] < 9 and -1 < y + i[1] < 5:
@@ -677,7 +676,7 @@ def ai():
         if len(ai_pieces) < 3:
             break
 
-
+    '''
     # printing ai_pieces:
     n = 0
     for i in range(len(ai_pieces)):
@@ -688,7 +687,7 @@ def ai():
                 print(ai_pieces[i][j])
             else:
                 print(ai_pieces[i][j])
-
+    '''
 
     score = copy.deepcopy(tree[-1])
 
