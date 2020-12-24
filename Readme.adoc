@@ -1,0 +1,11 @@
+= Fanorona with Min-Max AI built in Python
+
+Created as a school project with Python 3.6 and Tkinter.
+
+The code is in no means clean or even any good. It was my first ever programming project and I used it to learn basic concepts back in 2018/19.
+My original Version Control was lots of copies of the project folder, so I decided to put all those together into this repository.
+
+== What is Fanorona?
+
+It's a Board Game from Madagascar, chosen for the project because of it's relative simplicity compared to other board games like Chess, without being quite as simple as Tick-Tack-Toe.
+For more info on the rules, see the https://en.wikipedia.org/wiki/Fanorona[obligatory Wikipedia Article].
